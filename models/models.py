@@ -3,9 +3,9 @@
 from odoo import models, fields, api
 
 #======================================================== PSEUDOCODE ======================================================================
-#  WooCommerce Channel will inherit channel.pos.settings class and additionaly in the following pseudocode will be added the fields reqiured.
+#  WooCommerce Channel will inherit channel.pos.settings class and additionally in the following pseudocode will be added the fields required.
 #  The chanel will contain 7 tabs:
-#     - Api configuration to confgiure the Woo Commerce Shop
+#     - Api configuration to configure the Woo Commerce Shop
 #     - Products - list/tree view with all products in Woo Commerce
 #     - Customers - list/tree view with all customers in Woo Commerce
 #     - Orders - list/tree view with all orders in Woo Commerce
@@ -22,9 +22,9 @@ from odoo import models, fields, api
 #         woo_host = hostname (char)
 #         woo_username = username (char)
 #         woo_password = password (char)
-#         woo_comsumer_key = consumer_key (char)
+#         woo_consumer_key = consumer_key (char)
 #         woo_consumer_secret = consumer_secret (char)
-#         create wcapi instace with the fields above.
+#         create wcapi instance with the fields above.
 #
 #         #add fields for automation:
 #
@@ -45,21 +45,21 @@ from odoo import models, fields, api
 #             switch(woo_products){
 #                 case object list:
 #                     for product in woo_products:
-#                      if does not exict master product in odoo
+#                      if does not exist master product in odoo
 #                         create master_product
 #                         if master_product is created:
-#                             log succesfull creation of master_product in odoo
+#                             log successful creation of master_product in odoo
 #                         else:
 #                             log error while creating master product
 #                     #when master product excist or is created now, next step is to create clone product for woo
 #                     create clone_product (woo-> odoo)
 #                     if clone_product is created:
-#                         log succesfull creation
+#                         log successful creation
 #                     else:
 #                         log error while creation
 #                     break
 #                 case 0:
-#                     log nocreation
+#                     log no creation
 #                     break
 #                 case false: #unsuccessful import from woo_commerce
 #                     log error
@@ -119,8 +119,8 @@ from odoo import models, fields, api
 #         check if channel_id is woo_commerce:
 #             get woo_id from the product to be deleted
 #             delete product with woo_id in woo_commerce_products
-#             if product is successfuly deleted:
-#                 log product successfuly deleted
+#             if product is successfully deleted:
+#                 log product successfully deleted
 #             else :
 #                 log delete failed
 #         return res
@@ -145,7 +145,7 @@ from odoo import models, fields, api
 #                 for customer in woo_customers:
 #                     create customer in odoo
 #                     if the customer is created:
-#                         log succesfull creation of customer in odoo
+#                         log successful creation of customer in odoo
 #                     else:
 #                         log error while creating customer
 #             case 0:
@@ -157,11 +157,11 @@ from odoo import models, fields, api
 #         }
 # # 7. Customers update (Woo -> Odoo)
 #     def update_woo_customers():
-#         update_date = dete of the last update in odoo customers
+#         update_date = date of the last update in odoo customers
 #         woo_customers = get all customers from wooCommerce where date_modified > update_date
 #         switch (woo_customers){
 #             case object list:
-#                 for cutomer in woo_customers:
+#                 for customer in woo_customers:
 #                     update customer in odoo
 #                     if customer is updated:
 #                         log successful update of customer
@@ -177,7 +177,7 @@ from odoo import models, fields, api
 #         }
 # # 8. Update deleted customers (Woo -> Odoo)
 #     def update_deleted_woo_customers():
-#         woo_customer_ids = get all ids from the custmers in woo
+#         woo_customer_ids = get all ids from the customers in woo
 #         odoo_customer_ids = get all ids from customers for woo in res_partner
 #         #compare this two lists with ids
 #         for woo_id in woo_customer_ids:
@@ -193,7 +193,7 @@ from odoo import models, fields, api
 #
 # #Create new class to inherit product.template
 #     class WooProductTemplate():
-#         _inhert = 'product.template'
+#         _inherit = 'product.template'
 # #add additional fields for wooCommerce
 #     woo_id = id of the product in wooCommerce (Integer/Char)
 #     woo_categories = many2many to the product_categories
@@ -203,7 +203,7 @@ from odoo import models, fields, api
 #         # 4.1 Export product in woo when a new product is created in odoo (overwrite create product function)
 #             def create(self);
 #                 res = call the super function for creating product
-#                 check if the created product is woo clone produc
+#                 check if the created product is woo clone product
 #                 if woo_clone_product:
 #                     create new product in wooCommerce
 #                     if new product is successfully created in wooCommerce:
@@ -226,7 +226,7 @@ from odoo import models, fields, api
 # #Create new class to inherit res.partner
 #     class WooCustomers():
 #         _inherit = 'res.partner'
-#         #add additional fields for wooCommers
+#         #add additional fields for wooCommerce
 #         woo_customer_id = id of customer in WooCommerce (Integer)
 #         chanel_id = Many2one pos_chanel_id
 #         #later will add more fields if necessary
@@ -234,10 +234,10 @@ from odoo import models, fields, api
 # #Create new class for woo taxes
 #     class ChannelWooTaxes():
 #         #add fields in the class/ if needed later will add more fields
-#         woo_id = fields.Char('OXID ID', default='3')
+#         woo_id = fields.Char('Woo Commerce ID', default='3')
 #         name = tax name (char)
 #         amount = tax amount (float)
-#         woo_chanel_id = Channel( Many2one with channell.pos.settings)
+#         woo_chanel_id = Channel( Many2one with channel.pos.settings)
 #         account_tax =Mapped tax with odoo (many2one with account tax)
 #
 #         #add function for mapping taxes (Woo->Odoo)
