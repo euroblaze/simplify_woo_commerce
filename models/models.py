@@ -25,14 +25,17 @@ from odoo import models, fields, api
 #         woo_consumer_key = consumer_key (char)
 #         woo_consumer_secret = consumer_secret (char)
 #         create wcapi instance with the fields above.
+#          #The following 4 fields are only for showing date of update
+#         woo_last_update_product: Timestamp
+#         woo_last_update_order: Timestamp
+#         woo_last_update_customer: Timestamp
+#         woo_last_update_tax: Timestamp
+
+#         woo_tax_mapping = many2one with ChannelWooTaxes
 #
 #         #add fields for automation:
-#           woo_last_update_product = date of the last product update
-#           woo_last_update_oder = date of the last quotation/sale_order update
-#           woo_last_update_customer = date of the last customer update
-#           woo_last_update_tax = date of the last tax update
-
-#
+#           woo_interval_number (integer)
+#           woo_interval_type (Selection: minutes, hours, days etc)
 #
 #         def test_woo_connection():
 #             try:
