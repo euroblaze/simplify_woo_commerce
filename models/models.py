@@ -27,6 +27,11 @@ from odoo import models, fields, api
 #         create wcapi instance with the fields above.
 #
 #         #add fields for automation:
+#           woo_last_update_product = date of the last product update
+#           woo_last_update_oder = date of the last quotation/sale_order update
+#           woo_last_update_customer = date of the last customer update
+#           woo_last_update_tax = date of the last tax update
+
 #
 #
 #         def test_woo_connection():
@@ -37,6 +42,7 @@ from odoo import models, fields, api
 #             except:
 #                 raise Exception("Woo Commerce connection failed :( ")
 #                 log failed connection
+#                 return True
 #
 # # 2. Products import (WooCommerce -> Odoo)
 #         def import_woo_products():
@@ -65,8 +71,9 @@ from odoo import models, fields, api
 #                     log error
 #                     break
 #             }
+#                 return True
 # # 3. Products update (WooCommerce -> Odoo)
-#         def update_odoo_products: #update only woo clones (with chanel-id for woo)
+#         def update_woo_products: #update only woo clones (with chanel-id for woo)
 #             update_date_odoo = date of the last update in odoo (woo clones) products
 #             woo_products = get products from woo where date_modified > update_date_odoo
 #             switch (woo_products){
@@ -85,6 +92,7 @@ from odoo import models, fields, api
 #                     log error
 #                     break
 #             }
+#           return True
 #
 # #4. Products export (Odoo -> WooCommerce. Export new products created or edited in Odoo to WooCommerce)
 # # when some change is made to a product in odoo sync the change to the woo product
@@ -123,7 +131,7 @@ from odoo import models, fields, api
 #                 log product successfully deleted
 #             else :
 #                 log delete failed
-#         return res
+#
 #     #5.2 Woo Commerce -> Odoo
 #     def update_deleted_products_from_woo():
 #         woo_product_ids = get all ids from the products in woo
@@ -188,15 +196,82 @@ from odoo import models, fields, api
 #                 else:
 #                     log error while deleting customer
 #
-# #9. Set Automation settings (Woo->Odoo)
+# 9. Quotations import
+#       def import_woo_qoutation():
+#         import_date = date of the last import in odoo sale_order
+#         woo_quotations = get all quotations from wooCommerce where create_date > update_date
+#         switch (woo_quotaions){
+#             case object list:
+#                 for quotation in woo_quotation:
+#                     update quotation in odoo
+#                      set state to confirmed
+#                     if quotation is updated:
+#                         log successful update of quotation
+#                     else:
+#                         log error while updating quotation
+#                 break
+#             case 0:
+#                 log noupdate
+#                 break
+#             case false:
+#                 log error
+#                 break
+#         }
+
+# 10. Taxes import
+#     def import_woo_taxes():
+#         import_date = date of the last import in odoo
+#         woo_taxes = get all Taxes from wooCommerce where date_created > import_date
+#         switch(woo_Taxes){
+#             case object list:
+#                 for tax in woo_taxes:
+#                     create tax in odoo
+#                     if the tax is created:
+#                         log successful creation of tax in odoo
+#                     else:
+#                         log error while creating taxes
+#             case 0:
+#                 log nocreation
+#                 break
+#             case false: #unsuccessful import from woo_commerce
+#                 log error
+#                 break
+#         }
+# 12. Taxes update
+#     def update_woo_taxes():
+#         update_date = date of the last update in odoo taxes (account.tax)
+#         woo_taxes = get all taxes from wooCommerce where date_modified > update_date
+#         switch (woo_taxes){
+#             case object list:
+#                 for tax in woo_taxes:
+#                     update tax in odoo
+#                     if tax is updated:
+#                         log successful update of tax
+#                     else:
+#                         log error while updating taxes
+#                 break
+#             case 0:
+#                 log noupdate
+#                 break
+#             case false:
+#                 log error
+#                 break
+#         }
+# #10. Set Automation settings (Woo->Odoo)
 #     #Create cron for periodical  synchronization depending on the timestamps chosen in the Automation tab on the channel
-#
+#      def auto_update_woo():
+#             update products
+#             update customers
+#             update quotations
+#             update taxes
+
 # #Create new class to inherit product.template
 #     class WooProductTemplate():
 #         _inherit = 'product.template'
 # #add additional fields for wooCommerce
 #     woo_id = id of the product in wooCommerce (Integer/Char)
 #     woo_categories = many2many to the product_categories
+#     woo_variants = product woo_variants
 #     # if necessary later will add more fields here
 #
 #     #4.1 and 4.2 (create and write product) will be overwritten here
@@ -223,18 +298,29 @@ from odoo import models, fields, api
 #                     else:
 #                         log error while updating product
 #                 return res
+#         Unlink deleted products will be also overwritten in product_template
+#         # 5. Update deleted products
+#             #5.1 Odoo -> Woo Commerce
+#             #Overwrite delete/unlink function
+#             def unlink(self):
+#                 res  = call super function for deleting update_odoo_product
+#                 check if channel_id is woo_commerce:
+#                     get woo_id from the product to be deleted
+#                     delete product with woo_id in woo_commerce_products
+#                     if product is successfully deleted:
+#                         log product successfully deleted
+#                     else :
+#                         log delete failed
 # #Create new class to inherit res.partner
 #     class WooCustomers():
 #         _inherit = 'res.partner'
-#         #add additional fields for wooCommerce
-#         woo_customer_id = id of customer in WooCommerce (Integer)
-#         chanel_id = Many2one pos_chanel_id
+#         woo_customer_id = id of customer in WooCommerce (Integer/String)
 #         #later will add more fields if necessary
 #
 # #Create new class for woo taxes
 #     class ChannelWooTaxes():
 #         #add fields in the class/ if needed later will add more fields
-#         woo_id = fields.Char('Woo Commerce ID', default='3')
+#         woo_tax_id = fields.Char('Woo Commerce ID', default='3')
 #         name = tax name (char)
 #         amount = tax amount (float)
 #         woo_chanel_id = Channel( Many2one with channel.pos.settings)
@@ -242,7 +328,13 @@ from odoo import models, fields, api
 #
 #         #add function for mapping taxes (Woo->Odoo)
 #             #first check if you can take the taxes from woo with api call, if not create them
+#           def map_woo_taxes():
+#               map every woo_tax with odoo_tax
 #
+# Create new class to inherit sale order
+#     class WooQuotatins():
+#         _inherit = 'sale.order'
+#         woo_quotation_id = id of qoutaion in WooCommerce (Integer/String)
 
 
 
