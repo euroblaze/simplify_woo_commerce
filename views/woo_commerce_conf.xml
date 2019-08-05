@@ -1,0 +1,62 @@
+<odoo>
+  <data>
+    <record id="channel_pos_settings_woo_commerce_connector_inherit" model="ir.ui.view">
+      <field name="name">channel_pos_settings_woo_commerce_connector_inherit</field>
+    		<field name="model">channel.pos.settings</field>
+    		<field name="inherit_id" ref="simplify_okm_core.view_channels_form"/>
+    		<field name="arch" type="xml">
+        		<xpath expr="//page[@name='logs']" position='before'>
+
+                    <page name="WooCommerce API Configuration" string="API Configuration" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+                        <group>
+                            <group>
+                                <field name="woo_host"  attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_username"  attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_password"  attrs="{'required': [('pos', '==', '3')]}"/>
+                            </group>
+                            <group>
+                                <field name="woo_consumer_key"  attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_consumer_secret"  attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_commerce_version"  attrs="{'required': [('pos', '==', '3')]}"/>
+                            </group>
+                        </group>
+                        <group>
+                            <button name="woo_test_connection" type="object" string="Test Connection" class="btn-primary"/>
+                        </group>
+                    </page>
+                    <page name="WooCommerceTaxes" string="Taxes" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+                        <h3>
+                                Import Taxes From Woo Into Odoo
+                        </h3>
+                    </page>
+                    <page name="Woo Commerce Customers" string="Customers" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+                        <h3>
+                                Import Customers From Woo into Odoo
+                        </h3>
+                    </page>
+                    <page name="Woo Commerce Products" string="Products" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+                        <h3>
+                                Import Products from Woo into Odoo
+                        </h3>
+                    </page>
+                     <page name="Woo Commerce Orders" string="Orders" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+                         <h3>
+                                Import Orders from Woo into Odoo
+                         </h3>
+                    </page>
+                    <page name="Woo Commerce Scheduling" string="Scheduling" attrs="{'invisible': [('pos', '!=', '3')]}">
+                         <group>
+                            <label for="woo_interval_number" string="Execute Every"/>
+                            <div>
+                                <field name="woo_interval_number" class="oe_inline"/>
+                                <field name="woo_interval_type" class="oe_inline"/>
+                            </div>
+                            <field name="woo_nextcall"/>
+                            <field name="woo_cron_user_id"/>
+                        </group>
+                    </page>
+        		</xpath>
+        	</field>
+    </record>
+  </data>
+</odoo>

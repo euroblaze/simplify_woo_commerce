@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
-
 #======================================================== PSEUDOCODE ======================================================================
 #  WooCommerce Channel will inherit channel.pos.settings class and additionally in the following pseudocode will be added the fields required.
 #  The chanel will contain 7 tabs:
@@ -272,6 +271,7 @@ from odoo import models, fields, api
 #     class WooProductTemplate():
 #         _inherit = 'product.template'
 # #add additional fields for wooCommerce
+
 #     woo_id = id of the product in wooCommerce (Integer/Char)
 #     woo_categories = many2many to the product_categories
 #     woo_variants = product woo_variants
