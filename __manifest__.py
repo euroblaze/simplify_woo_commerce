@@ -20,11 +20,12 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'simplify_okm_core'],
+    'depends': ['base', 'simplify_okm_core','sale_management','account','stock'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
+        'views/woo_taxes.xml',
         'views/woo_commerce_conf.xml',
         'views/templates.xml',
     ],

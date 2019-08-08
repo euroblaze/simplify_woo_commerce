@@ -30,7 +30,7 @@ from odoo import models, fields, api
 #         woo_last_update_customer: Timestamp
 #         woo_last_update_tax: Timestamp
 
-#         woo_tax_mapping = many2one with ChannelWooTaxes
+#         woo_tax_mapping = Many2many with ChannelWooTaxes
 #
 #         #add fields for automation:
 #           woo_interval_number (integer)
