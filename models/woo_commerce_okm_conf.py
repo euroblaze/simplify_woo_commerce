@@ -73,9 +73,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         woo_taxes = wcapi.get("taxes").json()   #get all Woo taxes
         woo_taxes_obj = self.env['woo.taxes']
 
+        #For every tax from woo taxes check if is created in woo.taxes in odoo
+        woo_tax_ids= []
         for tax in woo_taxes:
+
             print(tax)
             id = tax['id']
+            woo_tax_ids.append(id)
             country = tax['country']
             state = tax['state']
             postcode = tax['postcode']
@@ -83,16 +87,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             rate = tax['rate']
             name = tax['name']
 
-            tax_exist = self.env['woo.taxes'].search_count([('woo_tax_id', '=', id),
-                                                      ('country', '=', country),
-                                                      ('state', '=', state),
-                                                      ('postcode', '=', postcode),
-                                                      ('city', '=', city),
-                                                      ('rate', '=', rate),
-                                                      ('name', '=', name),
-                                                      ('channel_id', '=', self.id)])
+            tax_exist = self.env['woo.taxes'].search_count([('woo_tax_id', '=', id)])
             if tax_exist == 1:  #First check if tax exist
                 print("Tax already exist")
+                #maybe the tax is updated so write the attributes agaim
+                self.env['woo.taxes'].search([('woo_tax_id', '=', id)]).write({'country': country,
+                                                                               'state': state,
+                                                                               'postcode': postcode,
+                                                                               'city': city,
+                                                                               'rate': rate,
+                                                                               'name': name,
+                                                                               'channel_id': self.id})
                 continue
             else : #If not exist then create the tax
                 try:
@@ -100,6 +105,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                        'postcode': postcode, 'city': city, 'rate': rate, 'name': name,
                                                        'channel_id': self.id})
                     if is_created:
+                        print("tax created")
                         logs = []
                         logs.append(
                             (0, 0, {'date': str(self.create_date), 'message': 'Woo tax ' + str(id) + ' successfully imported',
@@ -107,6 +113,15 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         self.update({'log_lines': logs})
                 except Exception as e:
                     _logger.error(e)
+        # Now in case of importing taxes from Woo into Odoo and then deleting some tax from Woo and again importing to Odoo
+        #Delete from odoo the deleted tax from woo
+
+        woo_taxes_obj2 = self.env['woo.taxes'].search([('channel_id', '=', self.id)])
+        for record in woo_taxes_obj2:
+            if record.woo_tax_id not in woo_tax_ids:
+                self.env['woo.taxes.map'].search([('woo_tax', '=', record.id)]).unlink()
+                record.unlink()
+
 
 
     # @api.one

@@ -5,10 +5,10 @@ from odoo import models, fields, api
 #  WooCommerce Channel will inherit channel.pos.settings class and additionally in the following pseudocode will be added the fields required.
 #  The chanel will contain 7 tabs:
 #     - Api configuration to configure the Woo Commerce Shop
-#     - Products - list/tree view with all products in Woo Commerce
-#     - Customers - list/tree view with all customers in Woo Commerce
-#     - Orders - list/tree view with all orders in Woo Commerce
 #     - Taxes - table of mapped taxes
+#     - Customers - list/tree view with all customers in Woo Commerce
+#     - Products - list/tree view with all products in Woo Commerce
+#     - Orders - list/tree view with all orders in Woo Commerce
 #     - Automation - shows fields for choosing frequency of importing and updating data
 #     - Logs - shows all logs
 #
