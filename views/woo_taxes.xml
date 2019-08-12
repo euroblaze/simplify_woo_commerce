@@ -1,6 +1,6 @@
 <odoo>
     <data>
-        <record id="woo_taxes_map" model="ir.ui.view">
+        <record id="woo_taxes_map_view" model="ir.ui.view">
         <field name="name">woo_taxes_map</field>
         <field name="model">woo.taxes.map</field>
         <field name="arch" type="xml">

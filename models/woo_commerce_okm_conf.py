@@ -122,8 +122,18 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         woo_taxes_obj2 = self.env['woo.taxes'].search([('channel_id', '=', self.id)])
         for record in woo_taxes_obj2:
             if record.woo_tax_id not in woo_tax_ids:
-                self.env['woo.taxes.map'].search([('woo_tax', '=', record.id)]).unlink()
-                record.unlink()
+                try:
+                    self.env['woo.taxes.map'].search([('woo_tax', '=', record.id)]).unlink()
+                    unlink = record.unlink()
+                    if unlink:
+                        logs = []
+                        logs.append((0, 0,{'date': str(datetime.datetime.now()),
+                                           'message': 'Woo tax ' + str(id) + ' has been deleted from Odoo',
+                                           'channel_id': self.id, 'type': 'Delete tax'}))
+                        self.update({'log_lines': logs})
+                except Exception as e:
+                    _logger.error(e)
+
 
 
 

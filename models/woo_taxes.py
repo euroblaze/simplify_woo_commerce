@@ -3,6 +3,7 @@ from odoo import models, fields, api, http
 from woocommerce import API
 import json
 import logging
+import datetime
 _logger = logging.getLogger(__name__)
 
 
@@ -42,7 +43,7 @@ class ChannelWooTaxes(models.Model):
 
     #set the domain for woo_tax to show just the taxes imported from the current woo instance
     @api.onchange('woo_channel_id')
-    def _onchange_dul(self):
+    def _onchange_channel(self):
         return {
             'domain': {
                 'woo_tax': [('channel_id', '=', self._context.get('channel_id'))]
@@ -52,11 +53,40 @@ class ChannelWooTaxes(models.Model):
     odoo_tax = fields.Many2one('account.tax', string='Odoo mapped tax',required=True)
     woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', default=_print_self, readonly=True)
 
+    #Overwrite on create to add log while creating map record
     @api.multi
     def create(self,vals):
         print(vals)
         result = super(ChannelWooTaxes, self).create(vals)
+        print(result)
+        try:
+            if result:
+                logs = []
+                logs.append((0, 0, {'date': result.create_date,
+                                    'message': 'Woo tax ' + str(result.woo_tax.name) + ' has been mapped into ' + str(result.odoo_tax.name) + " Odoo tax",
+                                    'channel_id': result.woo_tax.channel_id.id, 'type': 'Tax mapped'}))
+                print(logs)
+                print(self.env['channel.pos.settings'].search([('id', '=', result.woo_tax.channel_id.id)]).update({'log_lines': logs}))
+
+        except Exception as e:
+          _logger.error(e)
+
         return result
+
+    #Overwrite on delete to add log when map record is deleted
+    @api.multi
+    def unlink(self):
+        logs = []
+        logs.append((0, 0, {'date': self.create_date,
+                            'message': 'Woo tax ' + str(self.woo_tax.name) + ' mapped into ' + str(self.odoo_tax.name) + "  Odoo tax has been deleted",
+                            'channel_id': self.woo_tax.channel_id.id, 'type': 'Tax mapped'}))
+        print(logs)
+        print(self.env['channel.pos.settings'].search([('id', '=', self.woo_tax.channel_id.id)]).update(
+                    {'log_lines': logs}))
+        return super(ChannelWooTaxes, self).unlink()
+
+
+
 
 
 
