@@ -48,9 +48,9 @@ class ChannelWooTaxes(models.Model):
                 'woo_tax': [('channel_id', '=', self._context.get('channel_id'))]
             }}
 
-    woo_tax = fields.Many2one('woo.taxes')
-    odoo_tax = fields.Many2one('account.tax', string='Odoo mapped tax')
-    woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel', default=_print_self, readonly=True)
+    woo_tax = fields.Many2one('woo.taxes', required=True)
+    odoo_tax = fields.Many2one('account.tax', string='Odoo mapped tax',required=True)
+    woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', default=_print_self, readonly=True)
 
     @api.multi
     def create(self,vals):

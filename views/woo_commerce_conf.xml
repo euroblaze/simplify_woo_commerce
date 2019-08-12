@@ -41,7 +41,7 @@
                             <group>
                                  <field name="woo_taxes_map" context="{'channel_id':id}">
                                      <tree>
-                                         <field name="woo_tax"/>
+                                         <field name="woo_tax" />
                                          <field name="odoo_tax"/>
                                      </tree>
                                  </field>
@@ -53,6 +53,30 @@
                         <h3>
                                 Import Customers From Woo into Odoo
                         </h3>
+                        <group >
+                            <button name="import_woo_customers" type="object" string="Import Customers" class="btn-primary"/>
+                            <p>
+                                 <b> After completing the API Configuration  and Taxes mapping  in the previous tab,
+                                     you can now press this button to import all the customers from Woo Commerce into Odoo.
+                                     This is normally a one-time action at the beginning of setting up this Woo Commerce channel.
+                                     Regular imports of customer records is managed by Scheduled Actions. However,
+                                     if you are missing Customer data from Odoo Contacts/CRM, feel free to use this button
+                                     to manually sync your Woo Commerce customers with those here.
+                                 </b>
+                            </p>
+                        </group>
+                        <group>
+                            <group>
+                                 <field name="woo_customers" context="{'channel_id':id}">
+                                     <tree>
+                                         <field name="name" />
+                                         <field name="woo_customer_id"/>
+                                         <field name="woo_channel_id"/>
+                                     </tree>
+                                 </field>
+                            </group>
+                        </group>
+
                     </page>
                     <page name="Woo Commerce Products" string="Products" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
                         <h3>

@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form string="Woo Map Taxes">
                 <group>
-                    <field name="woo_tax"/>
+                    <field name="woo_tax" />
                     <field name="odoo_tax"/>
                     <field name="woo_channel_id"/>
                 </group>

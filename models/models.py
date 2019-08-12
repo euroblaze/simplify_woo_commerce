@@ -220,45 +220,21 @@ from odoo import models, fields, api
 #                 break
 #         }
 
-# 10. Taxes import
+# 10. Taxes import and update
 #     def import_woo_taxes():
-#         import_date = date of the last import in odoo
-#         woo_taxes = get all Taxes from wooCommerce where date_created > import_date
-#         switch(woo_Taxes){
-#             case object list:
-#                 for tax in woo_taxes:
-#                     create tax in odoo
-#                     if the tax is created:
-#                         log successful creation of tax in odoo
-#                     else:
-#                         log error while creating taxes
-#             case 0:
-#                 log nocreation
-#                 break
-#             case false: #unsuccessful import from woo_commerce
-#                 log error
-#                 break
-#         }
-# 12. Taxes update
-#     def update_woo_taxes():
-#         update_date = date of the last update in odoo taxes (account.tax)
-#         woo_taxes = get all taxes from wooCommerce where date_modified > update_date
-#         switch (woo_taxes){
-#             case object list:
-#                 for tax in woo_taxes:
-#                     update tax in odoo
-#                     if tax is updated:
-#                         log successful update of tax
-#                     else:
-#                         log error while updating taxes
-#                 break
-#             case 0:
-#                 log noupdate
-#                 break
-#             case false:
-#                 log error
-#                 break
-#         }
+#        get taxes from woo
+#         foreach tax from woo:
+#             check if exist in odoo:
+#             if exist
+#                 update their values in case of update
+#             else if not exist
+#                 create one into woo.taxes table
+#         #in case of not first import from the same woo instance
+#         foreach imported tax in woo:
+#             check if now exist in woo
+#             if not delete the removed tax from woo.taxes table and from woo.taxes.map
+# #         }
+
 # #10. Set Automation settings (Woo->Odoo)
 #     #Create cron for periodical  synchronization depending on the timestamps chosen in the Automation tab on the channel
 #      def auto_update_woo():
