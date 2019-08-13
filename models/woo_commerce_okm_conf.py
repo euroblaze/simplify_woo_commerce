@@ -13,7 +13,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
     #Field for tax mapping
     woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Taxes")
-    woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers")
+    #Field for Customers
+    woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers", domain=[('parent_id', '=', None)])
 
     #Fields for Woo Commerce configuration
     woo_host = fields.Char(string='Host')
@@ -263,6 +264,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         woo_customers_list = []
 
         for woo_customer in woo_customers:
+            print(woo_customer)
             # print(woo_customer)
             woo_customers_list.append(woo_customer['id'])
 
@@ -274,30 +276,20 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # you will find the master customer with the woo_id and parent_id = null
 
             master_partner_exist = self.env['res.partner'].search_count([('woo_customer_id', '=', woo_id),
-                                                                        ('woo_channel_id', '=', self.id)])
-            print("Master partner 1:")
-            print(woo_id)
-            print(self.id)
-            print(master_partner_exist)
-
-            master_partner_exist = self.env['res.partner'].search_count([('woo_customer_id', '=', woo_id),
                                                                          ('woo_channel_id', '=', self.id),
                                                                          ('parent_id', '=', None)])
-            print("Master partner 2: ")
-            print(master_partner_exist)
 
             # if master customer exist
             if master_partner_exist == 1:
-                print("Parent ID: ")
-
-                print(master_partner_exist)
 
                 # compare the time of updates and if needed make an update
-                print("**************")
-                print(woo_customer['date_modified'])
-
                 woo_date_modified = woo_customer['date_modified']
-                update = self.is_updated(woo_id, self.id, woo_date_modified)
+                if woo_date_modified is None:
+                    update = False
+                else:
+                    update = self.is_updated(woo_id, self.id, woo_date_modified)
+
+
 
                 # get the master record ID
                 parent = res_partner.search([('woo_customer_id', '=', woo_id),
@@ -320,20 +312,25 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                              ('woo_channel_id', '=', self.id),
                                                              ('parent_id', '=', parent_id),
                                                              ('type', '=', 'invoice')]).write(billing_info)
-                        print(res_partner.search([('woo_customer_id', '=', woo_id),
-                                                             ('woo_channel_id', '=', self.id),
-                                                             ('parent_id', '=', parent_id),
-                                                             ('type', '=', 'invoice')]))
-                        print(billing_record)
+
 
                     #if billing record does not exist  - create one
                     elif billing_record_exist == 0:
-                        print("Billing record created")
-                        billing_info.update({'parent_id': parent_id})
-                        billing_record = res_partner.create(billing_info)
-                        #log creation
+                        try:
+                            print("Billing record created")
+                            billing_info.update({'parent_id': parent_id})
+                            billing_record = res_partner.create(billing_info)
 
-
+                            #log creation
+                            if billing_record:
+                                logs = []
+                                logs.append(
+                                    (0, 0, {'date': str(billing_record.create_date),
+                                            'message': 'Billing information imported for customer ' + str(billing_record.name),
+                                            'channel_id': self.id, 'type': 'Customer import'}))
+                                self.update({'log_lines': logs})
+                        except Exception as e:
+                            _logger.error(e)
 
                 # check if shipping information exists i.e if at least first name exist
                 if woo_customer['shipping']['first_name'] != '':
@@ -349,24 +346,56 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                              ('woo_channel_id', '=', self.id),
                                                              ('parent_id', '=', parent_id),
                                                              ('type', '=', 'delivery')]).write(shipping_info)
-                        print(shipping_record)
+
 
                     elif shipping_record_exist == 0:
                         print("Shipping record created")
-                        shipping_info.update({'parent_id': parent_id})
-                        shipping_record = res_partner.create(shipping_info)
-                        # log creation
+                        try:
+                            shipping_info.update({'parent_id': parent_id})
+                            shipping_record = res_partner.create(shipping_info)
+                            # log creation
+                            if shipping_record:
+                                logs = []
+                                logs.append(
+                                    (0, 0, {'date': str(shipping_record.create_date),
+                                            'message': 'Shipping information imported for customer ' + str(shipping_record.name),
+                                            'channel_id': self.id, 'type': 'Customer import'}))
+                                self.update({'log_lines': logs})
+                        except Exception as e:
+                            _logger.error(e)
 
                 # finally update the parent customer record
-                parent.write(personal_info)
-                #log update
+                try:
+                    parent_update = parent.write(personal_info)
+                    if parent_update:
+                        logs = []
+                        logs.append((0, 0, {'date': str(parent_update.write_date),
+                                            'message': "Information updated for customer " + str(
+                                                parent_update.name) + " with ID " + str(parent_id.woo_customer_id),
+                                            'channel_id': self.id, 'type': 'Customer update'}))
+                        self.update({'log_lines': logs})
+                except Exception as e:
+                    _logger.error(e)
+
+
+
 
             # if master customer does not exist
             else:
                 # create master contact with type contact
-                res_partner.create(personal_info)
-                print("Parent customer created ")
-                # log creation
+                try:
+                    customer_create =res_partner.create(personal_info)
+                    print("Parent customer created ")
+                    # log creation
+                    if customer_create:
+                        logs = []
+                        logs.append((0, 0, {'date': str(customer_create.create_date),
+                                            'message': "Customer with ID " + str(customer_create.woo_commerce_id) + ' successfully imported',
+                                            'channel_id': self.id, 'type': 'Customer import'}))
+                        self.update({'log_lines': logs})
+                except Exception as e:
+                    _logger.error(e)
+
 
                 # get the master record ID
                 parent_id = res_partner.search([('woo_customer_id', '=', woo_id),
@@ -380,26 +409,30 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     # if he has, then create child customer record with parent id
                     # billing_info.update({'parent_id': parent_id})
                     billing_info['parent_id'] = parent_id
-                    billing_record = res_partner.create(billing_info)
-                    print("Child customer record for billing information created")
-                    # log creation
+                    try:
+                        res_partner.create(billing_info)
+
+                    except Exception as e:
+                        _logger.error(e)
+
 
 
                 # check if woo_customer has shipping information
                 if woo_customer['shipping']['first_name'] != '':
                     # if it has, then create child customer record with parent id
-                    # shipping_info.update({'parent_id': parent_id})
-
-                    shipping_info['parent_id'] = parent_id
-                    shipping_record = res_partner.create(shipping_info)
-                    print("Child customer record created for shipping information created")
                     # log creation
+                    try:
+                        shipping_info['parent_id'] = parent_id
+                        res_partner.create(shipping_info)
+                        print("Child customer record created for shipping information")
+                    except Exception as e:
+                        _logger.error(e)
 
         #After one or more importing check if there is some deleted customer in WooCommerce
         # If yes delete the customer from Odoo too.
         self.check_deleted_customers(woo_customers_list)
 
-#write code for logs
+
 
 
 
