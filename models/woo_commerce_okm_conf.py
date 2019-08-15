@@ -15,6 +15,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Taxes")
     #Field for Customers
     woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers", domain=[('parent_id', '=', None)])
+    # woo_categories = fields.One2many('product_category', 'woo_channel_id', string="Product categories",)
 
     #Fields for Woo Commerce configuration
     woo_host = fields.Char(string='Host')
@@ -431,6 +432,61 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         #After one or more importing check if there is some deleted customer in WooCommerce
         # If yes delete the customer from Odoo too.
         self.check_deleted_customers(woo_customers_list)
+
+    def import_woo_categories(self, woo_categories):
+        # INPUT - json format of Woo categories
+        # OUTPUT - importing this categories into Odoo product.category
+        woo_categories.sort(key=lambda s: s['parent'])
+        # print(woo_categories)
+        for category in woo_categories:
+            print(category)
+            duplicate_category = self.env['product.category'].search([('woo_category_id', '=', category['id'])])
+            if duplicate_category:
+                pass
+            else:
+                parent_path = ''
+                complete_name = ''
+                parent = category['parent']
+                if parent == 0:
+                    parent_path = str(category['id']) + '/'
+                    complete_name = str(category['name']) + '/'
+                else:
+                    parent_category = self.env['product.category'].search([('woo_category_id', '=', category['id']),
+                                                                           ('woo_channel_id', '=', self.id),
+                                                                           ('woo_parent_id', '=', category['parent'])],
+                                                                          limit=1)
+                    parent_path = str(parent_category.parent_path) + str(parent_category.id) + '/'
+                    complete_name = str(parent_category.complete_name) + str(category['name']) + '/'
+
+                parent = category['parent']
+                woo_category = {
+                    'woo_category_id': category['id'],
+                    # 'parent_id' : category['parent'],
+                    'woo_parent_id': category['parent'],
+                    'name': category['name'],
+                    'woo_channel_id': self.id,
+                }
+                print(woo_category)
+                created_category = self.env['product.category'].create(woo_category)
+                # created_category.write({'parent_path': parent_path})
+                # created_category.write({'complete_name': complete_name})
+                # parent_id = created_category.woo_parent_id
+                id = created_category.id
+                print(id)
+                # if parent_id != 0:
+                #     created_category.write({'parent_id': id})
+                # print(created_category.parent_id)
+
+    def import_woo_products(self):
+        print("Products import")
+        wcapi = self.create_woo_commerce_object()  # connect to Woo
+        woo_products = wcapi.get('products', params={"per_page": 100}).json()  # get all Woo products
+        woo_categories = wcapi.get('products/categories').json()  # get all Woo categories
+
+        # before product import, import all categories
+        print("=========================== CATEGORIES =================================================")
+        self.import_woo_categories(woo_categories)
+
 
 
 

@@ -7,7 +7,7 @@
         subtitle on modules listing or apps.openerp.com""",
 
     'description': """
-        Long description of module's purpose
+       Woo Commerce Connector
     """,
 
     'author': "simplify-erp",
