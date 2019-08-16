@@ -20,6 +20,9 @@ class ImportWooTaxes(models.Model):
     rate = fields.Float(string='Rate % ')
     name = fields.Char(string='Tax name')
     channel_id = fields.Many2one('channel.pos.settings', string='Channel')
+    tax_class = fields.Char(string='Class')
+
+
 
 
 #CLASS FOR MAPPING ODOO <-> WOO TAXES

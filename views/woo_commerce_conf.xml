@@ -83,7 +83,7 @@
                                 Import Products from Woo into Odoo
                         </h3>
                         <group >
-                            <button name="import_woo_products" type="object" string="Import Customers" class="btn-primary"/>
+                            <button name="import_woo_products" type="object" string="Import Products" class="btn-primary"/>
                         </group>
                     </page>
                      <page name="Woo Commerce Orders" string="Orders" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">

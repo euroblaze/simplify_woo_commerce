@@ -2,7 +2,7 @@
 from odoo import models, fields, api
 
 #INHERT PRODUCT_CATEGORY AND ADD NEW FIELD FOR WOO_CHANNEL INSTANCE ID
-class InhertResPartner(models.Model):
+class InhertProductCategory(models.Model):
     _inherit = 'product.category'
 
     woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', description="Woo Channel instance ID")

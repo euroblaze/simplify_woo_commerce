@@ -3,6 +3,8 @@ from odoo import models, fields, api
 from woocommerce import API
 import datetime
 import logging
+import requests
+import base64
 _logger = logging.getLogger(__name__)
 
 class InheritChannelPosSettingsWooCommerceConnector(models.Model):
@@ -15,7 +17,10 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Taxes")
     #Field for Customers
     woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers", domain=[('parent_id', '=', None)])
-    # woo_categories = fields.One2many('product_category', 'woo_channel_id', string="Product categories",)
+    #Field for categories
+    woo_categories = fields.One2many('product.category', 'woo_channel_id', string="Product categories",)
+    #Field for products
+    woo_products = fields.One2many('product.template', 'woo_channel_id', string="Products",)
 
     #Fields for Woo Commerce configuration
     woo_host = fields.Char(string='Host')
@@ -51,7 +56,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             consumer_key=self.woo_consumer_key,
             consumer_secret=self.woo_consumer_secret,
             wp_api="wp-json",
-            version=self.woo_commerce_version
+            version=self.woo_commerce_version,
+            timeout= 100
         )
         print(wcapi)
         return wcapi
@@ -74,11 +80,15 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     @api.one
     def import_woo_taxes(self):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
+        woo_taxes = wcapi.get("taxes")
+        print(woo_taxes)
         woo_taxes = wcapi.get("taxes").json()   # get all Woo taxes
         woo_taxes_obj = self.env['woo.taxes']
 
         # For every tax from woo taxes check if is created in woo.taxes table in odoo
         woo_tax_ids= []
+        print("+++++++++++")
+        print(woo_taxes)
         for tax in woo_taxes:
 
             print(tax)
@@ -90,6 +100,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             city = tax['city']
             rate = tax['rate']
             name = tax['name']
+            tax_class = tax['class']
 
             tax_exist = self.env['woo.taxes'].search_count([('woo_tax_id', '=', id)])
             if tax_exist == 1:  # First check if tax exist
@@ -101,7 +112,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                                'city': city,
                                                                                'rate': rate,
                                                                                'name': name,
-                                                                               'channel_id': self.id})
+                                                                               'channel_id': self.id,
+                                                                               'tax_class':tax_class})
                 continue
             # If not exist then create the tax
             else:
@@ -228,7 +240,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         return personal_info, billing_info, shipping_info
 
-    def is_updated(self, woo_customer_id, woo_channel_id, woo_date_modified):
+    def is_customer_updated(self, woo_customer_id, woo_channel_id, woo_date_modified):
         # INPUT:
         #     woo_customer_id in odoo
         #     woo_channel_id in odoo
@@ -288,7 +300,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 if woo_date_modified is None:
                     update = False
                 else:
-                    update = self.is_updated(woo_id, self.id, woo_date_modified)
+                    update = self.is_customer_updated(woo_id, self.id, woo_date_modified)
 
 
 
@@ -477,6 +489,40 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 #     created_category.write({'parent_id': id})
                 # print(created_category.parent_id)
 
+    def get_current_product_price(self, woo_product):
+        sale_price = woo_product['sale_price'] # Sale price in woo
+        sales_price = woo_product['regular_price'] #Current product in Odoo
+
+        if sale_price == '': #check if the product is on sale
+            print("THE PRODUCT IS NOT ON SALE!!!")
+            sales_price = woo_product['regular_price']
+
+        else: #if the product is on sale
+            date_now = str(datetime.datetime.now()).split(".")  # to igonre miliseconds
+            date_now = datetime.datetime.strptime(date_now[0], '%Y-%m-%d %H:%M:%S')
+            date_on_sale_from = woo_product['date_on_sale_from']
+
+            # check if date_on_sale_from is scheduled
+            if date_on_sale_from is not None:
+                date_on_sale_from = date_on_sale_from.split("T")
+                date_on_sale_from = date_on_sale_from[0] + ' ' + date_on_sale_from[1]
+                date_on_sale_from = datetime.datetime.strptime(date_on_sale_from, '%Y-%m-%d %H:%M:%S')
+
+                date_on_sale_to = woo_product['date_on_sale_to']
+                if date_on_sale_to is not None: # check if date_on_sale_to is scheduled
+                    date_on_sale_to = woo_product['date_on_sale_to'].split("T")
+                    date_on_sale_to = date_on_sale_to[0] + ' ' + date_on_sale_to[1]
+                    date_on_sale_to = datetime.datetime.strptime(date_on_sale_to, '%Y-%m-%d %H:%M:%S')
+
+                    if date_on_sale_from <= date_now and date_now <= date_on_sale_to:
+                        print('PRODUCT ON SALE!!!')
+                        sales_price = sale_price
+                else: #if date_on_sale_to is not scheduled
+                    if date_on_sale_from <= date_now:
+                        sales_price = sale_price
+        return sales_price
+
+
     def import_woo_products(self):
         print("Products import")
         wcapi = self.create_woo_commerce_object()  # connect to Woo
@@ -486,6 +532,84 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # before product import, import all categories
         print("=========================== CATEGORIES =================================================")
         self.import_woo_categories(woo_categories)
+
+        print("=========================== PRODUCTS =================================================")
+        attribute_obj = self.env['product.attribute']
+        value_obj = self.env['product.attribute.value']
+        product_template = self.env['product.template']
+        product_product = self.env['product.product']
+        stock_quant = self.env['stock.quant']
+        stock_change_product_qty = self.env['stock.change.product.qty']
+        tax = self.woo_taxes_map
+        print("Taxes")
+        print(tax)
+        for woo_product in woo_products:
+            print(woo_product)
+            aRelValues = {}
+            woo_id = woo_product['id']
+            product_exists = product_template.search([('woo_product_id', '=', woo_id),
+                                                      ('woo_channel_id', '=', self.id)])
+            # tax_class = woo_product['tax_class']
+            # taxes = self.env['woo.taxes'].search([('woo_channel_id', '=', self.id), ('tax_class', '=', tax_class)])
+            product_current_price = self.get_current_product_price(woo_product)
+
+            product_basic_info = {
+                'woo_product_id': woo_product['id'],
+                # 'woo_channel_id': self.id,
+                'name': woo_product['name'],
+                'type': 'product',
+                'active': True if woo_product['status'] == 'publish' else False,
+                # active da zavisi od Woo status or woo catalog_visibility
+                'description': woo_product['description'],
+                # 'taxes_id': [(6, 0, taxes)],  # check this line additionaly
+                'woo_regular_price': woo_product['price'],
+                'woo_sale_price': woo_product['sale_price'],
+                'list_price': woo_product['price']
+            }
+            print(product_basic_info)
+            # check if product exist and then update / create
+            if product_exists:
+                print("Update product")
+            else:
+
+                product_tmpl_record = self.env['product.template'].create(product_basic_info)
+                master_id = product_tmpl_record.id
+                if product_tmpl_record:
+                    print("Create product")
+                    #log product template creation
+
+
+
+                images = woo_product['images']
+                #check if images exists
+                if images:
+                    product_image_ids = []
+                    for image in images:
+                        image_response = requests.get(image['src'], stream=True, verify=False,timeout=10)
+
+                        if image_response.status_code == 200:
+                            image_binary = base64.b64encode(image_response.content)
+                            self.env['product.image'].create({'image':image_binary})
+                            # print(image_binary)
+                #get variants:
+                if woo_product.get('variations'):
+                    print('===============================================')
+                    product_id = woo_product['id']
+                    variations = wcapi.get('products/'+str(product_id)+'/variations').json()
+                    for variation in variations:
+                        print(variation)
+                        print('===============================================')
+
+
+
+
+
+
+
+
+
+
+
 
 
 
