@@ -700,6 +700,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     product_id = woo_product['id']
                     variations = wcapi.get('products/' + str(product_id) + '/variations').json()
                     print("VARIATIONS", variations)
+                    all_attrs_and_vals = {}
                     for variation in variations:
                         # if the product has variants
                         print(variation)
@@ -710,40 +711,73 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
                         print("ATTR_AND_VALS: ", attr_and_vals)
                         for attr_id in attr_and_vals.keys():
-                            list_vals = attr_and_vals[attr_id]
-                            list_all_vals = list_all_vals +list_vals
-                        print('List of all variant values', list_all_vals)
-                        print("Variation price", variation['price'])
-                        print("List ALL VALS :", list_all_vals)
-                        create_variant = product_product.create({
-                            'woo_variant_id': variation['id'],
-                            'default_code': sku,
-                            'active': True if variation['status'] == 'publish' else False,
-                            'type': 'product',
-                            'product_tmpl_id': master_product.id,
-                            'attribute_value_ids': [(6, 0, list_all_vals)],
-                            # 'price': float(variation['price']),
-                            'price_extra': float(woo_product['price']) - float(variation['price']),
-                            'woo_channel_id': self.id
-                        })
-                        print("Created price", create_variant.lst_price)
+                            if attr_id in all_attrs_and_vals:
+                                all_attrs_and_vals[attr_id] += attr_and_vals[attr_id]
+                            else:
+                                all_attrs_and_vals[attr_id] = attr_and_vals[attr_id]
+                    list_all = []
+                    for key in all_attrs_and_vals.keys():
+                        print("Key ", key)
+                        print("Values", all_attrs_and_vals[key])
+                        list_val =  all_attrs_and_vals[key]
+                        p_tmpl_a_line = self.env['product.template.attribute.line'].create({'product_tmpl_id': master_product.id,
+                                                                                        'attribute_id': key,
+                                                                                        'value_ids': [(6, 0, list_val)]})
+                        print("PRODUCT TEMPLATE ATTRIBUTE LINE", p_tmpl_a_line)
+                        list_all.append(p_tmpl_a_line.id)
+                        print("List ALL", list_all)
 
-                        image_medium = variation['image']
-                        if image_medium:
-                            image_response = requests.get(image_medium['src'], stream=True, verify=False, timeout=10)
-                            if image_response.status_code == 200:
-                                image_binary = base64.b64encode(image_response.content)
-                                create_variant.write({'image_medium': image_binary})
+                    # for the product create attribute_line_ids -> automatically product variants are being created
+                    prod_prods = master_product.write({'attribute_line_ids': [(6, 0, list_all)]})
+                    print("Product_product", prod_prods)
+                    #get the corresponding variants for the product
+                    corresponding_product_variants = product_product.search([('product_tmpl_id', '=', master_product.id)])
+                    print("Coresponding product variants:", corresponding_product_variants)
+                    location = self.env['stock.location'].search([('name', '=', 'Stock'),
+                                                                              ('location_id', '!=', None)], limit=1)
 
-                        print("Create variant: ", create_variant)
-                        location = self.env['stock.location'].search([('name', '=', 'Stock'),
-                                                                      ('location_id', '!=', None)], limit=1)
-                        print("LOCATION ", location)
-                        variant_stock = variation['stock_quantity']
-                        print("variant stock", variant_stock)
-                        if variant_stock is None:
-                            variant_stock = 0
-                        stock_quant._update_available_quantity(create_variant, location, float(variant_stock))
+
+
+
+                        # Creation variants 2 attempt
+
+                        #     list_vals = attr_and_vals[attr_id]
+                        #     list_all_vals = list_all_vals + list_vals
+                        # print('List of all variant values', list_all_vals)
+                        # print("Variation price", variation['price'])
+                        # print("List ALL VALS :", list_all_vals)
+                        # create_variant = product_product.create({
+                        #     'woo_variant_id': variation['id'],
+                        #     'default_code': sku,
+                        #     'active': True if variation['status'] == 'publish' else False,
+                        #     'type': 'product',
+                        #     'product_tmpl_id': master_product.id,
+                        #     'attribute_value_ids': [(6, 0, list_all_vals)],
+                        #     # 'price': float(variation['price']),
+                        #     'price_extra': abs(float(woo_product['price']) - float(variation['price'])),
+                        #     'woo_channel_id': self.id
+                        # })
+                        # print("Created price", create_variant.lst_price)
+                        #
+                        # image_medium = variation['image']
+                        # if image_medium:
+                        #     image_response = requests.get(image_medium['src'], stream=True, verify=False, timeout=10)
+                        #     if image_response.status_code == 200:
+                        #         image_binary = base64.b64encode(image_response.content)
+                        #         create_variant.write({'image_medium': image_binary})
+                        #
+                        # print("Create variant: ", create_variant)
+                        # location = self.env['stock.location'].search([('name', '=', 'Stock'),
+                        #                                               ('location_id', '!=', None)], limit=1)
+                        # print("LOCATION ", location)
+                        # variant_stock = variation['stock_quantity']
+                        # print("variant stock", variant_stock)
+                        # if variant_stock is None:
+                        #     variant_stock = 0
+                        # stock_quant._update_available_quantity(create_variant, location, float(variant_stock))
+
+
+                    #Unuseful code version 1
 
 
                         # p_tmpl_a_line = self.env['product.template.attribute.line'].create({'product_tmpl_id': master_product.id,
