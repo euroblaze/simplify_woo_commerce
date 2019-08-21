@@ -20,7 +20,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     #Field for categories
     woo_categories = fields.One2many('product.category', 'woo_channel_id', string="Product categories",)
     #Field for products
-    woo_products = fields.One2many('product.template', 'woo_channel_id', string="Products",)
+    woo_products = fields.One2many('product.template', 'channel_id', string="Products",)
 
     #Fields for Woo Commerce configuration
     woo_host = fields.Char(string='Host')
@@ -101,6 +101,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             rate = tax['rate']
             name = tax['name']
             tax_class = tax['class']
+            print("TAX CLASSSSSSS", tax_class)
 
             tax_exist = self.env['woo.taxes'].search_count([('woo_tax_id', '=', id)])
             if tax_exist == 1:  # First check if tax exist
@@ -113,14 +114,15 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                                'rate': rate,
                                                                                'name': name,
                                                                                'channel_id': self.id,
-                                                                               'tax_class':tax_class})
+                                                                               'tax_class': tax_class})
                 continue
             # If not exist then create the tax
             else:
                 try:
                     is_created = woo_taxes_obj.create({'woo_tax_id': id, 'country': country, 'state': state,
                                                        'postcode': postcode, 'city': city, 'rate': rate, 'name': name,
-                                                       'channel_id': self.id})
+                                                       'channel_id': self.id,
+                                                       'tax_class': tax_class})
                     if is_created:
                         print("tax created")
                         logs = []
@@ -522,6 +524,64 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         sales_price = sale_price
         return sales_price
 
+    def create_woo_attributes_and_values(self, woo_variant):
+        attr_id = ''
+        list_vals = []
+        attr_and_vals ={}
+        attribute_obj = self.env['product.attribute']
+        value_obj = self.env['product.attribute.value']
+
+        # get all attributes from the product variant
+        attributes = woo_variant['attributes']
+        for attribute in attributes:
+            attr_id = ''
+            list_vals = []
+            print("Variant attribute", attribute)
+            # get attribute name and value
+            attr_name = attribute['name']
+            attr_value = attribute['option']
+            # odoo_attr_names = [attr.name.lower() for atrr in attribute_obj.search([])]
+            odoo_attr_names_and_ids = {}
+
+            # get all attributes names and their ids from Odoo
+            for attr in attribute_obj.search([]):
+                print("Odoo ATTR", attr)
+                name = attr.name.lower()
+                id = attr.id
+                odoo_attr_names_and_ids[name] = id
+                print("Odoo attr names and IDS", odoo_attr_names_and_ids)
+
+            # check if the attribute exist in Odoo
+            print("Attribute exist in Odoo", attr_name.lower() in odoo_attr_names_and_ids.keys())
+            if attr_name.lower() in odoo_attr_names_and_ids.keys():
+                # attribute already exist
+                attr_id = odoo_attr_names_and_ids[attr_name.lower()]
+                print('Attribute exiat with ID ', attr_id)
+                # check if value exist
+                value_exist = value_obj.search([('name', '=', attr_value), ('attribute_id', '=', attr_id)])
+
+                #if value does not exist => create the value
+                if value_exist:
+                    print("Value exist")
+                    list_vals.append(value_exist.id)
+                else:
+                    print("Value does not exist")
+                    create_value = value_obj.create({'name': attr_value,
+                                                     'attribute_id': attr_id})
+                    print("Created value", create_value)
+                    list_vals.append(create_value.id)
+            else: # attribute does not exist => create attribute
+                attribute_create = attribute_obj.create({'name': attr_name})
+                print("Attribute create", attribute_create)
+                attr_id = attribute_create.id
+                # create value
+                create_value = value_obj.create({'name': attr_value,
+                                                 'attribute_id': attr_id})
+                print("Created value", create_value)
+                list_vals.append(create_value.id)
+
+            attr_and_vals[attr_id] = list_vals
+        return attr_and_vals
 
     def import_woo_products(self):
         print("Products import")
@@ -540,65 +600,224 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         product_product = self.env['product.product']
         stock_quant = self.env['stock.quant']
         stock_change_product_qty = self.env['stock.change.product.qty']
-        tax = self.woo_taxes_map
-        print("Taxes")
-        print(tax)
+
         for woo_product in woo_products:
             print(woo_product)
             aRelValues = {}
             woo_id = woo_product['id']
-            product_exists = product_template.search([('woo_product_id', '=', woo_id),
-                                                      ('woo_channel_id', '=', self.id)])
-            # tax_class = woo_product['tax_class']
-            # taxes = self.env['woo.taxes'].search([('woo_channel_id', '=', self.id), ('tax_class', '=', tax_class)])
-            product_current_price = self.get_current_product_price(woo_product)
+            sku = woo_product['sku']  # Stock keeping unit, should be unique - something like isbn on the books
+            # check if product exist - search with sku number
+            master_product_exists = product_template.search([('default_code', '=', sku), ('master_id', '=', None)])
 
-            product_basic_info = {
-                'woo_product_id': woo_product['id'],
-                # 'woo_channel_id': self.id,
+            # parse the product basic info
+            woo_product_info = {
                 'name': woo_product['name'],
                 'type': 'product',
                 'active': True if woo_product['status'] == 'publish' else False,
                 # active da zavisi od Woo status or woo catalog_visibility
                 'description': woo_product['description'],
-                # 'taxes_id': [(6, 0, taxes)],  # check this line additionaly
-                'woo_regular_price': woo_product['price'],
-                'woo_sale_price': woo_product['sale_price'],
-                'list_price': woo_product['price']
+                'woo_regular_price': woo_product['price'],  # regular price
+                'woo_sale_price': woo_product['sale_price'],  # price on sale
+                'list_price': woo_product['price'],  # current price
+                'default_code': sku
             }
-            print(product_basic_info)
-            # check if product exist and then update / create
-            if product_exists:
-                print("Update product")
-            else:
+            print("DICT1", woo_product_info)
 
-                product_tmpl_record = self.env['product.template'].create(product_basic_info)
-                master_id = product_tmpl_record.id
-                if product_tmpl_record:
+
+            # check if the product has tax
+            tax_class = woo_product['tax_class']
+            if tax_class != '':
+                odoo_taxes = [tax.odoo_tax.id for tax in self.woo_taxes_map if tax.woo_tax.tax_class == tax_class]
+                # for tax in self.woo_taxes_map:
+                #     print("Woo tax",tax.woo_tax.tax_class)
+                #     print("Product tax", tax_class)
+                #     if tax.woo_tax.tax_class == tax_class:
+                #         print("ODOOOO TAX", tax.odoo_tax)
+                print("ODOO taxes", odoo_taxes)
+                woo_product_info.update({
+                    'taxes_id': [(6, 0, odoo_taxes)]
+                })
+                # woo_product_info['taxes_id'] = [(6, 0, odoo_taxes)] # if the product has tax/es add them to taxes_id
+                print("DICT2", woo_product_info)
+
+            # if master product exist create/update the clone product for Woo Commerce
+            if master_product_exists:
+                print("Master product exist")
+                master_id = master_product_exists.id
+                print(master_product_exists.taxes_id)
+                print(master_id)
+                #Ako postoi master, proveri dali postoi clone,
+                #Ako ne postoi klone kreiraj go
+                #Ako postoi updejtni gi informaciite na klonot
+
+            # master product does not exist
+            else:
+                # create master product
+                master_product = self.env['product.template'].create(woo_product_info)
+                print("DICT3", woo_product_info)
+                master_id = master_product.id
+
+                # check if the product has images
+                images = woo_product['images']
+                # if images exists
+                if images:
+                    # list with image ids for the master product
+                    product_image_ids = []
+                    image_id = 1
+                    for image in images:
+
+                        # this is image medium (display image of the product)
+                        if image_id == 1:
+                            image_id = image_id + 1
+                            image_response = requests.get(image['src'], stream=True, verify=False, timeout=10)
+                            if image_response.status_code == 200:
+                                image_binary = base64.b64encode(image_response.content)
+                                aRelValues['image_medium'] = image_binary
+
+                        # images from the gallery
+                        else:
+                            image_response = requests.get(image['src'], stream=True, verify=False, timeout=10)
+                            if image_response.status_code == 200:
+                                image_binary = base64.b64encode(image_response.content)
+                                # add the image into product image
+                                wooCreateImage = self.env['product.image'].create({
+                                                                                    'name': image['name'],
+                                                                                    'woo_image_id': image['id'],
+                                                                                    'woo_channel_id': self.id,
+                                                                                    'image': image_binary,
+                                                                                    'product_tmpl_id': master_id
+                                                                               })
+                                product_image_ids.append(wooCreateImage.id)
+                # add the images to the master product
+                aRelValues['product_image_ids'] = [(6, 0, product_image_ids)]
+                master_product.write(aRelValues)
+
+                ################################## CODE FOR VARIANTS #############################################################
+                # check if the product has variants
+                if woo_product.get('variations') != []:
+                    print('===============================================')
+                    product_id = woo_product['id']
+                    variations = wcapi.get('products/' + str(product_id) + '/variations').json()
+                    print("VARIATIONS", variations)
+                    for variation in variations:
+                        # if the product has variants
+                        print(variation)
+                        # list_all = []
+                        list_all_vals = []
+                        # attr_id, list_vals = self.create_woo_attributes_and_values(variation)
+                        attr_and_vals= self.create_woo_attributes_and_values(variation)
+
+                        print("ATTR_AND_VALS: ", attr_and_vals)
+                        for attr_id in attr_and_vals.keys():
+                            list_all_vals.append()
+                            # attr_id = attr_id
+                            # print("Attr ID", attr_id)
+                            # list_vals = attr_and_vals[attr_id]
+                            # print("List values: ", list_vals)
+                            # p_tmpl_a_line = self.env['product.template.attribute.line'].create({'product_tmpl_id': master_product.id,
+                            #                                                                 'attribute_id': attr_id,
+                            #                                                                 'value_ids': [(6, 0, list_vals)]})
+                            # print("PRODUCT TEMPLATE ATTRIBUTE LINE", p_tmpl_a_line)
+                            # list_all.append(p_tmpl_a_line.id)
+                            # print("List ALL", list_all)
+                            #
+                            # # for the product create attribute_line_ids -> automatically product variants are being created
+                            # prod_prods = master_product.write({'attribute_line_ids': [(6, 0, list_all)]})
+                            # print("Product_product", prod_prods)
+                            # #get the corresponding variants for the product
+                    #         corresponding_product_variants = product_product.search([('product_tmpl_id', '=', master_product.id)])
+                    #         print("Coresponding product variants:" , corresponding_product_variants)
+                    #         location = self.env['stock.location'].search([('name', '=', 'Stock'),
+                    #                                                       ('location_id', '!=', None)], limit=1)
+                    # # print("LOCATION ",location)
+                    # for index_prod, each_prod in enumerate(corresponding_product_variants):
+                    #     # for every variant add parameters
+                    #     print("Index prod:=====", index_prod)
+                    #     print('Each product before', each_prod)
+                    #     woo_variant = variations[index_prod]
+                    #     print("Woo variant", woo_variant)
+                    #     status = True if woo_variant['status'] == 'publish' else False
+                    #
+                    #     each_prod.write({'woo_variant_id': woo_variant['id'],
+                    #                              'default_code': sku,
+                    #                              'active': status,
+                    #                              'type': 'product',
+                    #                              })
+                    #     # get the stock
+                    #     print("Each product after: ", each_prod)
+                    #     variant_stock = woo_variant['stock_quantity']
+                    #     print("variant stock", variant_stock)
+                    #     if variant_stock is None:
+                    #         variant_stock = 0
+                    #     stock_quant._update_available_quantity(each_prod, location,float(variant_stock))
+                    #     # find the object that contains the extra pricing for the variants
+                    #     find_prod_tmpl_attr_val = self.env['product.template.attribute.value'].search([("name", '=', woo_product['name']),
+                    #             ('product_tmpl_id', '=', master_product.id)])
+                    #     print(find_prod_tmpl_attr_val)
+                    #     # print("VARIANT IMAGE IMPORT ", client.service.getImage(the_ox_variant['oxid']))
+                    #     # print(self.fetch_image(article_import, the_ox_variant, client, each_prod))
+                    #     if find_prod_tmpl_attr_val:
+                    #         product_current_price = woo_product['price']
+                    #         print("Product current price", product_current_price)
+                    #         variant_current_price = woo_variant['price']
+                    #         print("Variant current price", variant_current_price)
+                    #          # if exists substract the price and add the difference in the object
+                    #         find_prod_tmpl_attr_val.write({'price_extra': abs(
+                    #             float(variant_current_price) - float(product_current_price))})
+
+
+
+
+
+
+
+
+
+                        # print('===============================================')
+                # if does not have variants check if has attribute
+
+
+
+                # create duplicate product for Woo commerce
+
+                woo_product_info.update({
+                    'woo_product_id': woo_product['id'],
+                    'channel_id': self.id,
+                    'master_id': master_id
+                })
+                print("DICT4", woo_product_info)
+
+                print(woo_product_info['message_follower_ids'])
+                del woo_product_info['message_follower_ids']
+                print("DICT", woo_product_info)
+                product_tmpl_woo = self.env['product.template'].create(woo_product_info)
+                # product_tmpl_woo = master_product.copy()
+                # product_tmpl_woo.channel_id = self.id
+                # product_tmpl_woo.master_id = master_id
+                product_tmpl_woo.write(aRelValues)
+                print(product_tmpl_woo)
+                #
+
+
+
+
+
+                if master_product:
                     print("Create product")
+                    print("TAXES")
+                    print(master_product)
+                    t = master_product.taxes_id
+                    for tax in t:
+                        print(tax)
                     #log product template creation
 
 
 
-                images = woo_product['images']
-                #check if images exists
-                if images:
-                    product_image_ids = []
-                    for image in images:
-                        image_response = requests.get(image['src'], stream=True, verify=False,timeout=10)
 
-                        if image_response.status_code == 200:
-                            image_binary = base64.b64encode(image_response.content)
-                            self.env['product.image'].create({'image':image_binary})
-                            # print(image_binary)
-                #get variants:
-                if woo_product.get('variations'):
-                    print('===============================================')
-                    product_id = woo_product['id']
-                    variations = wcapi.get('products/'+str(product_id)+'/variations').json()
-                    for variation in variations:
-                        print(variation)
-                        print('===============================================')
+
+
+
+
 
 
 
