@@ -608,7 +608,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             sku = woo_product['sku']  # Stock keeping unit, should be unique - something like isbn on the books
             # check if product exist - search with sku number
             master_product_exists = product_template.search([('default_code', '=', sku), ('master_id', '=', None)])
-            print("Master product exist: ", master_product_exists)
 
             # parse the product basic info
             woo_product_info = {
@@ -619,7 +618,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'description': woo_product['description'],
                 'woo_regular_price': woo_product['price'],  # regular price
                 'woo_sale_price': woo_product['sale_price'],  # price on sale
-                'price': woo_product['price'],  # current price
+                'list_price': woo_product['price'],  # current price
                 'default_code': sku
             }
             print("DICT1", woo_product_info)
@@ -710,43 +709,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
                         print("ATTR_AND_VALS: ", attr_and_vals)
                         for attr_id in attr_and_vals.keys():
-                            list_vals = attr_and_vals[attr_id]
-                            list_all_vals = list_all_vals +list_vals
-                        print('List of all variant values', list_all_vals)
-                        print("Variation price", variation['price'])
-                        print("List ALL VALS :", list_all_vals)
-                        create_variant = product_product.create({
-                            'woo_variant_id': variation['id'],
-                            'default_code': sku,
-                            'active': True if variation['status'] == 'publish' else False,
-                            'type': 'product',
-                            'product_tmpl_id': master_product.id,
-                            'attribute_value_ids': [(6, 0, list_all_vals)],
-                            # 'price': float(variation['price']),
-                            'price_extra': float(woo_product['price']) - float(variation['price']),
-                            'woo_channel_id': self.id
-                        })
-                        print("Created price", create_variant.lst_price)
-
-                        image_medium = variation['image']
-                        if image_medium:
-                            image_response = requests.get(image_medium['src'], stream=True, verify=False, timeout=10)
-                            if image_response.status_code == 200:
-                                image_binary = base64.b64encode(image_response.content)
-                                create_variant.write({'image_medium': image_binary})
-
-                        print("Create variant: ", create_variant)
-                        location = self.env['stock.location'].search([('name', '=', 'Stock'),
-                                                                      ('location_id', '!=', None)], limit=1)
-                        print("LOCATION ", location)
-                        variant_stock = variation['stock_quantity']
-                        print("variant stock", variant_stock)
-                        if variant_stock is None:
-                            variant_stock = 0
-                        stock_quant._update_available_quantity(create_variant, location, float(variant_stock))
-
-
-                        # p_tmpl_a_line = self.env['product.template.attribute.line'].create({'product_tmpl_id': master_product.id,
+                            list_all_vals.append()
+                            # attr_id = attr_id
+                            # print("Attr ID", attr_id)
+                            # list_vals = attr_and_vals[attr_id]
+                            # print("List values: ", list_vals)
+                            # p_tmpl_a_line = self.env['product.template.attribute.line'].create({'product_tmpl_id': master_product.id,
                             #                                                                 'attribute_id': attr_id,
                             #                                                                 'value_ids': [(6, 0, list_vals)]})
                             # print("PRODUCT TEMPLATE ATTRIBUTE LINE", p_tmpl_a_line)
@@ -817,18 +785,18 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     'channel_id': self.id,
                     'master_id': master_id
                 })
-                # print("DICT4", woo_product_info)
+                print("DICT4", woo_product_info)
 
-                # print(woo_product_info['message_follower_ids'])
-                # del woo_product_info['message_follower_ids']
-                # print("DICT", woo_product_info)
-                # product_tmpl_woo = self.env['product.template'].create(woo_product_info)
-                # # product_tmpl_woo = master_product.copy()
-                # # product_tmpl_woo.channel_id = self.id
-                # # product_tmpl_woo.master_id = master_id
-                # product_tmpl_woo.write(aRelValues)
-                # print(product_tmpl_woo)
-                # #
+                print(woo_product_info['message_follower_ids'])
+                del woo_product_info['message_follower_ids']
+                print("DICT", woo_product_info)
+                product_tmpl_woo = self.env['product.template'].create(woo_product_info)
+                # product_tmpl_woo = master_product.copy()
+                # product_tmpl_woo.channel_id = self.id
+                # product_tmpl_woo.master_id = master_id
+                product_tmpl_woo.write(aRelValues)
+                print(product_tmpl_woo)
+                #
 
 
 
