@@ -85,6 +85,20 @@
                         <group >
                             <button name="import_woo_products" type="object" string="Import Products" class="btn-primary"/>
                         </group>
+                          <group>
+
+                                 <field name="woo_products">
+                                     <tree>
+                                         <field name="default_code" />
+                                         <field name="name" />
+                                         <field name="list_price"/>
+                                         <field name="categ_id"/>
+                                         <field name="type"/>
+                                         <field name="qty_available"/>
+                                     </tree>
+                                 </field>
+                            </group>
+
                     </page>
                      <page name="Woo Commerce Orders" string="Orders" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
                          <h3>
