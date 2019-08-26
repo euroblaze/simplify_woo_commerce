@@ -25,6 +25,7 @@ class ImportWooTaxes(models.Model):
 
 
 
+
 #CLASS FOR MAPPING ODOO <-> WOO TAXES
 class ChannelWooTaxes(models.Model):
     _name = 'woo.taxes.map'
@@ -53,7 +54,7 @@ class ChannelWooTaxes(models.Model):
             }}
 
     woo_tax = fields.Many2one('woo.taxes', required=True)
-    odoo_tax = fields.Many2one('account.tax', string='Odoo mapped tax',required=True)
+    odoo_tax = fields.Many2one('account.tax', string='Odoo mapped tax', required=True)
     woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', default=_print_self, readonly=True)
 
     #Overwrite on create to add log while creating map record
