@@ -591,6 +591,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # check if the product has images
         images = woo_product['images']
+        product_image_ids = []
         # if images exists
         if images:
             # list with image ids for the master product
@@ -767,7 +768,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_product_list.append(woo_id)
             sku = woo_product['sku']  # Stock keeping unit, should be unique - something like isbn on the books
             # check if product exist - search with sku number
-            master_product_exists = product_template.search([('default_code', '=', sku), ('master_id', '=', None)])
+            master_product_exists = product_template.search([('default_code', '=', sku), ('master_id', '=', None)], limit=1)
             print("Master product exist: ", master_product_exists)
 
             # parse the product basic info
