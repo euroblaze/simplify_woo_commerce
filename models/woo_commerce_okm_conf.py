@@ -806,25 +806,19 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'woo_sale_price': woo_product['sale_price'],  # price on sale
                 'price': woo_product['price'],  # current price
                 'default_code': str(sku),
-                'woo_sku': sku
+                'woo_sku': sku,
+
             }
             # print("PRODUCT PRICE", woo_product['price'])
             # print("DICT1", woo_product_info)
-
             # check if the product has tax
             tax_class = woo_product['tax_class']
-            if tax_class != '':
-                odoo_taxes = [tax.odoo_tax.id for tax in self.woo_taxes_map if tax.woo_tax.tax_class == tax_class]
-                # for tax in self.woo_taxes_map:
-                #     print("Woo tax",tax.woo_tax.tax_class)
-                #     print("Product tax", tax_class)
-                #     if tax.woo_tax.tax_class == tax_class:
-                #         print("ODOOOO TAX", tax.odoo_tax)
-                # print("ODOO taxes", odoo_taxes)
-                woo_product_info.update({
-                    'taxes_id': [(6, 0, odoo_taxes)]
-                })
-                # print("DICT2", woo_product_info)
+            print("TAX CLASS", tax_class)
+            if tax_class == '':
+                tax_class = 'standard'
+            odoo_taxes = [tax.odoo_tax.id for tax in self.woo_taxes_map if tax.woo_tax.tax_class == tax_class]
+
+
 
             # if master product exist create/update the clone product for Woo Commerce
             if master_product_exists:
@@ -847,6 +841,10 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     woo_clone.write(aRelValues)
                     # update product variants (if exist)
                     self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+                    print('Odoo taxes', odoo_taxes)
+                    woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
+                    woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
+                    # print("DICT2", woo_product_info)
                 else:
                     #if clone does not exist => create woo clone
                     woo_product_info.update({
@@ -868,6 +866,10 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
                     # Add variants to the clone if the product has variants
                     self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+                    woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
+                    woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
+
+                    # print("DICT2", woo_product_info)
 
 
 
@@ -906,6 +908,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
                 # Add variants to the clone if the product has variants
                 self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+                woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
+                woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
+                # print("DICT2", woo_product_info)
 
         # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
         self.check_deleted_products(woo_product_list)

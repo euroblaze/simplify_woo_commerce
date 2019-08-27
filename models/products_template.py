@@ -14,13 +14,13 @@ class InhertProductTemplate(models.Model):
     @api.depends('product_variant_ids', 'product_variant_ids.default_code')
     def _compute_default_code(self):
         unique_variants = self.filtered(lambda template: len(template.product_variant_ids) == 1)
-        print("Unique variants", unique_variants)
-        print("Self in compute DEAFULT CODE ",  self)
+        # print("Unique variants", unique_variants)
+        # print("Self in compute DEAFULT CODE ",  self)
         if self.woo_sku is not None:
-            print("WOO_SKU", self.woo_sku)
-            print("DEFAULT_CODE IN COMPUTE before", self.default_code)
+            # print("WOO_SKU", self.woo_sku)
+            # print("DEFAULT_CODE IN COMPUTE before", self.default_code)
             self.default_code = self.woo_sku
-            print("DEFAULT_CODE IN COMPUTE after", self.default_code)
+            # print("DEFAULT_CODE IN COMPUTE after", self.default_code)
         # for product in self:
         #     print("Product in COMPUTE", product)
         #     print("WOO_SKU", product.woo_sku)

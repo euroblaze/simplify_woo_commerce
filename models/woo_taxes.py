@@ -60,9 +60,9 @@ class ChannelWooTaxes(models.Model):
     #Overwrite on create to add log while creating map record
     @api.multi
     def create(self,vals):
-        print(vals)
+        # print(vals)
         result = super(ChannelWooTaxes, self).create(vals)
-        print(result)
+        # print(result)
         try:
             if result:
                 logs = []
@@ -85,9 +85,9 @@ class ChannelWooTaxes(models.Model):
         logs.append((0, 0, {'date': self.create_date,
                             'message': 'Woo tax ' + str(self.woo_tax.name) + ' mapped into ' + str(self.odoo_tax.name) + "  Odoo tax has been deleted",
                             'channel_id': self.woo_tax.channel_id.id, 'type': 'Tax mapped'}))
-        print(logs)
-        print(self.env['channel.pos.settings'].search([('id', '=', self.woo_tax.channel_id.id)]).update(
-                    {'log_lines': logs}))
+        # print(logs)
+        self.env['channel.pos.settings'].search([('id', '=', self.woo_tax.channel_id.id)]).update(
+                    {'log_lines': logs})
         return super(ChannelWooTaxes, self).unlink()
 
 
