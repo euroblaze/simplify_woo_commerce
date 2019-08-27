@@ -69,8 +69,9 @@ class ChannelWooTaxes(models.Model):
                 logs.append((0, 0, {'date': result.create_date,
                                     'message': 'Woo tax ' + str(result.woo_tax.name) + ' has been mapped into ' + str(result.odoo_tax.name) + " Odoo tax",
                                     'channel_id': result.woo_tax.channel_id.id, 'type': 'Tax mapped'}))
-                print(logs)
-                print(self.env['channel.pos.settings'].search([('id', '=', result.woo_tax.channel_id.id)]).update({'log_lines': logs}))
+                # print(logs)
+
+                self.env['channel.pos.settings'].search([('id', '=', result.woo_tax.channel_id.id)]).update({'log_lines': logs})
 
         except Exception as e:
           _logger.error(e)

@@ -275,7 +275,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         return update
 
     def import_woo_customers(self):
-        print("Customers imported.")
+        # print("Customers imported.")
         wcapi = self.create_woo_commerce_object()  # connect to Woo
         woo_customers = wcapi.get("customers").json()  # get all Woo customers
         # print(woo_customers)
@@ -284,7 +284,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         woo_customers_list = []
 
         for woo_customer in woo_customers:
-            print(woo_customer)
             # print(woo_customer)
             woo_customers_list.append(woo_customer['id'])
 
@@ -314,7 +313,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                              ('woo_channel_id', '=', self.id),
                                              ('parent_id', '=', None)], limit=1)
                 parent_id = parent.id
-                print(parent_id)
+                # print(parent_id)
 
                 # check if billing information exists
                 if woo_customer['billing']['first_name'] != '':
@@ -325,7 +324,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                      ('type', '=', 'invoice')])
                     # if billing record exist and woo_customer need to be updated then update the billing record
                     if billing_record_exist == 1 and update:
-                        print('Billing record updated')
+                        # print('Billing record updated')
                         billing_record = res_partner.search([('woo_customer_id', '=', woo_id),
                                                              ('woo_channel_id', '=', self.id),
                                                              ('parent_id', '=', parent_id),
@@ -335,7 +334,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     # if billing record does not exist  - create one
                     elif billing_record_exist == 0:
                         try:
-                            print("Billing record created")
+                            # print("Billing record created")
                             billing_info.update({'parent_id': parent_id})
                             billing_record = res_partner.create(billing_info)
 
@@ -347,7 +346,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                             'message': 'Billing information imported for customer ' + str(
                                                 billing_record.name),
                                             'channel_id': self.id, 'type': 'Customer import'}))
-                                self.update({'log_lines': logs})
+                                self.write({'log_lines': logs})
                         except Exception as e:
                             _logger.error(e)
 
@@ -360,7 +359,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                       ('type', '=', 'delivery')])
                     # if shipping record exist and woo_customer need to be updated then update the billing record
                     if shipping_record_exist == 1 and update:
-                        print("Shipping record updated")
+                        # print("Shipping record updated")
                         shipping_record = res_partner.search([('woo_customer_id', '=', woo_id),
                                                               ('woo_channel_id', '=', self.id),
                                                               ('parent_id', '=', parent_id),
@@ -368,7 +367,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
 
                     elif shipping_record_exist == 0:
-                        print("Shipping record created")
+                        # print("Shipping record created")
                         try:
                             shipping_info.update({'parent_id': parent_id})
                             shipping_record = res_partner.create(shipping_info)
@@ -380,7 +379,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                             'message': 'Shipping information imported for customer ' + str(
                                                 shipping_record.name),
                                             'channel_id': self.id, 'type': 'Customer import'}))
-                                self.update({'log_lines': logs})
+                                self.write({'log_lines': logs})
                         except Exception as e:
                             _logger.error(e)
 
@@ -393,7 +392,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                             'message': "Information updated for customer " + str(
                                                 parent_update.name) + " with ID " + str(parent_id.woo_customer_id),
                                             'channel_id': self.id, 'type': 'Customer update'}))
-                        self.update({'log_lines': logs})
+                        self.write({'log_lines': logs})
                 except Exception as e:
                     _logger.error(e)
 
@@ -405,7 +404,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # create master contact with type contact
                 try:
                     customer_create = res_partner.create(personal_info)
-                    print("Parent customer created ")
+                    # print("Parent customer created ")
                     # log creation
                     if customer_create:
                         logs = []
@@ -421,11 +420,10 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 parent_id = res_partner.search([('woo_customer_id', '=', woo_id),
                                                 ('woo_channel_id', '=', self.id),
                                                 ('parent_id', '=', None)], limit=1).id
-                print(parent_id)
+                # print(parent_id)
 
                 # check if woo_customer has billing information
                 if woo_customer['billing']['first_name'] != '':
-                    print()
                     # if he has, then create child customer record with parent id
                     # billing_info.update({'parent_id': parent_id})
                     billing_info['parent_id'] = parent_id
@@ -442,7 +440,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     try:
                         shipping_info['parent_id'] = parent_id
                         res_partner.create(shipping_info)
-                        print("Child customer record created for shipping information")
+                        # print("Child customer record created for shipping information")
                     except Exception as e:
                         _logger.error(e)
 
@@ -548,11 +546,11 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
             # get all attributes names and their ids from Odoo
             for attr in attribute_obj.search([]):
-                print("Odoo ATTR", attr)
+                # print("Odoo ATTR", attr)
                 name = attr.name.lower()
                 id = attr.id
                 odoo_attr_names_and_ids[name] = id
-                print("Odoo attr names and IDS", odoo_attr_names_and_ids)
+                # print("Odoo attr names and IDS", odoo_attr_names_and_ids)
 
             # check if the attribute exist in Odoo
             # print("Attribute exist in Odoo", attr_name.lower() in odoo_attr_names_and_ids.keys())
@@ -594,7 +592,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         product_image_ids = []
         # if images exists
         if images:
-            # list with image ids for the master product
+            # list with image ids for the odoo product
             product_image_ids = []
             image_id = 1
             for image in images:
@@ -628,8 +626,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
     def check_deleted_products(self, woo_products_list):
         odoo_products = self.env['product.template'].search([('channel_id', '=', self.id),
-                                                            ('woo_product_id', '!=', None),
-                                                            ('master_id', '!=', None)])
+                                                             ('woo_product_id', '!=', None),
+                                                             ('master_id', '!=', None)])
         for product in odoo_products:
             if product.woo_product_id not in woo_products_list:
                 product.active = False
@@ -640,138 +638,33 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                             'channel_id': self.id, 'type': 'Delete product'}))
                 self.update({'log_lines': logs})
 
-    # def get_woo_product_variants(self, woo_product, wcapi, odoo_product):
-    #     stock_quant = self.env['stock.quant']
-    #     sku = woo_product['sku']  # Stock keeping unit, should be unique - something like isbn on the books
-    #     product_product = self.env['product.product']
-    #
-    #     if woo_product.get('variations') != []:
-    #         print('===============================================')
-    #         product_id = woo_product['id']
-    #         variations = wcapi.get('products/' + str(product_id) + '/variations').json()
-    #         print("VARIATIONS", variations)
-    #         all_attrs_and_vals = {}
-    #         # lista od listi so vrednosti na varijantite
-    #         woo_variant_vals = []
-    #         for variation in variations:
-    #             # if the product has variants
-    #             print(variation)
-    #             # list_all = []
-    #             list_all_vals = []
-    #             # attr_id, list_vals = self.create_woo_attributes_and_values(variation)
-    #             # Atributi i vrednosti za site varijanti na proizvodot. primer Boja i site vrednosti za boja. Golemina i site golemini.
-    #             attr_and_vals = self.create_woo_attributes_and_values(variation)
-    #
-    #             print("ATTR_AND_VALS: ", attr_and_vals)
-    #             tmp_list = []
-    #             for attr_id in attr_and_vals.keys():
-    #                 vals = attr_and_vals[attr_id]
-    #                 vals.sort()
-    #                 print("VALS ", vals)
-    #                 tmp_list += vals
-    #                 # print("Woo WALS", woo_variant_vals)
-    #
-    #                 if attr_id in all_attrs_and_vals:
-    #                     all_attrs_and_vals[attr_id] += vals
-    #                 else:
-    #                     all_attrs_and_vals[attr_id] = vals
-    #             # print("TMP Vals", tmp_list)
-    #             woo_variant_vals.append(tmp_list)
-    #             # print("Woo variant val", woo_variant_vals)
-    #         list_all = []
-    #         for key in all_attrs_and_vals.keys():
-    #             # print("Key ", key)
-    #             # print("Values", all_attrs_and_vals[key])
-    #             list_val = all_attrs_and_vals[key]
-    #             p_tmpl_a_line = self.env['product.template.attribute.line'].create(
-    #                 {'product_tmpl_id': odoo_product.id,
-    #                  'attribute_id': key,
-    #                  'value_ids': [(6, 0, list_val)]})
-    #             # print("PRODUCT TEMPLATE ATTRIBUTE LINE", p_tmpl_a_line)
-    #             list_all.append(p_tmpl_a_line.id)
-    #             # print("List ALL", list_all)
-    #
-    #         # for the product create attribute_line_ids -> automatically product variants are being created
-    #         prod_prods = odoo_product.write({'attribute_line_ids': [(6, 0, list_all)]})
-    #         # print("Product_product", prod_prods)
-    #         # get the corresponding variants for the product
-    #         corresponding_product_variants = product_product.search(
-    #             [('product_tmpl_id', '=', odoo_product.id)])
-    #         # print("Coresponding product variants:", corresponding_product_variants)
-    #         location = self.env['stock.location'].search([('name', '=', 'Stock'),
-    #                                                       ('location_id', '!=', None)], limit=1)
-    #
-    #         for odoo_variant in corresponding_product_variants:
-    #             # print("Odoo variant attrs lines: ", odoo_variant.attribute_value_ids )
-    #             value_ids = [value.id for value in odoo_variant.attribute_value_ids]
-    #             # print("VALUE IDS", value_ids)
-    #             # print("WOO WARIANT VALS", woo_variant_vals)
-    #             # print("Odoo Variant in Woo variants1", value_ids in woo_variant_vals)
-    #             if value_ids not in woo_variant_vals:
-    #                 odoo_variant.unlink()
-    #                 pass
-    #
-    #             else:
-    #                 index = woo_variant_vals.index(value_ids)
-    #                 woo_variant = variations[index]
-    #                 print("Woo variant", woo_variant)
-    #                 status = True if woo_variant['status'] == 'publish' else False
-    #                 print('Variant price', woo_variant['price'])
-    #                 odoo_variant.write({'woo_variant_id': woo_variant['id'],
-    #                                     'default_code': sku,
-    #                                     'active': status,
-    #                                     'type': 'product',
-    #                                     'price': float(woo_variant['price']),
-    #                                     'lst_price': float(woo_variant['price']),
-    #                                     'list_price': float(woo_variant['price']),
-    #                                     'price_extra': abs(
-    #                                         float(woo_product['price']) - float(woo_variant['price'])),
-    #                                     'woo_price': float(woo_variant['price']),
-    #                                     'woo_channel_id': self.id})
-    #                 print('Variant list price', odoo_variant.lst_price)
-    #                 image_medium = woo_variant['image']
-    #                 if image_medium:
-    #                     image_response = requests.get(image_medium['src'], stream=True, verify=False,
-    #                                                   timeout=10)
-    #                     if image_response.status_code == 200:
-    #                         image_binary = base64.b64encode(image_response.content)
-    #                         odoo_variant.write({'image_medium': image_binary})
-    #                 variant_stock = woo_variant['stock_quantity']
-    #                 if variant_stock is None:
-    #                     variant_stock = 0
-    #                 stock_quant._update_available_quantity(odoo_variant, location, float(variant_stock))
-
     def get_woo_product_variants(self, woo_product, wcapi, odoo_product):
         stock_quant = self.env['stock.quant']
         sku = woo_product['sku']  # Stock keeping unit, should be unique - something like isbn on the books
         product_product = self.env['product.product']
 
         if woo_product.get('variations') != []:
-            print('===============================================')
+            # print('===============================================')
             product_id = woo_product['id']
             variations = wcapi.get('products/' + str(product_id) + '/variations').json()
-            print("VARIATIONS", variations)
+            # print("VARIATIONS", variations)
             all_attrs_and_vals = {}
             # lista od listi so vrednosti na varijantite
             woo_variant_vals = []
             for variation in variations:
                 # if the product has variants
-                print(variation)
-                # list_all = []
-                list_all_vals = []
-                # attr_id, list_vals = self.create_woo_attributes_and_values(variation)
+                # print(variation)
                 # Atributi i vrednosti za site varijanti na proizvodot. primer Boja i site vrednosti za boja. Golemina i site golemini.
                 attr_and_vals = self.create_woo_attributes_and_values(variation)
 
-                print("ATTR_AND_VALS: ", attr_and_vals)
+                # print("ATTR_AND_VALS: ", attr_and_vals)
                 tmp_list = []
                 for attr_id in attr_and_vals.keys():
                     vals = attr_and_vals[attr_id]
                     vals.sort()
-                    print("VALS ", vals)
+                    # print("VALS ", vals)
                     tmp_list += vals
                     # print("Woo WALS", woo_variant_vals)
-
                     if attr_id in all_attrs_and_vals:
                         all_attrs_and_vals[attr_id] += vals
                     else:
@@ -779,107 +672,26 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # print("TMP Vals", tmp_list)
                 woo_variant_vals.append(tmp_list)
                 # print("Woo variant val", woo_variant_vals)
-
-            # till this moment, we have created attributes and values in Odoo
-            # Now, the next step is to check if variants already exists in Odoo
-            corresponding_product_variants_count = product_product.search_count(
-                [('product_tmpl_id', '=', odoo_product.id)])
-            if corresponding_product_variants_count > 0:
-                # this means that some variants are already imported previously
-                corresponding_product_variants = product_product.search(
-                                                                    [('product_tmpl_id', '=', odoo_product.id)])
-                location = self.env['stock.location'].search([('name', '=', 'Stock'),
-                                                              ('location_id', '!=', None)], limit=1)
-                odoo_variants = []
-                #check if some varaint has been deleted/updated in Woo => Delete/Update in Odoo
-                for odoo_variant in corresponding_product_variants:
-                    # print("Odoo variant attrs lines: ", odoo_variant.attribute_value_ids )
-                    value_ids = [value.id for value in odoo_variant.attribute_value_ids]
-                    odoo_variants.append(value_ids)
-                    # print("VALUE IDS", value_ids)
-                    # print("WOO WARIANT VALS", woo_variant_vals)
-                    # print("Odoo Variant in Woo variants1", value_ids in woo_variant_vals)
-                    if value_ids not in woo_variant_vals:
-                        odoo_variant.unlink()
-                        pass
-
-                    else:
-                        index = woo_variant_vals.index(value_ids)
-                        woo_variant = variations[index]
-                        print("Woo variant", woo_variant)
-                        status = True if woo_variant['status'] == 'publish' else False
-                        print('Variant price', woo_variant['price'])
-                        odoo_variant.write({'woo_variant_id': woo_variant['id'],
-                                            'default_code': sku,
-                                            'active': status,
-                                            'type': 'product',
-                                            'price': float(woo_variant['price']),
-                                            'lst_price': float(woo_variant['price']),
-                                            'list_price': float(woo_variant['price']),
-                                            'price_extra': abs(
-                                                float(woo_product['price']) - float(woo_variant['price'])),
-                                            'woo_price': float(woo_variant['price']),
-                                            'woo_channel_id': self.id})
-                        print('Variant list price', odoo_variant.lst_price)
-                        image_medium = woo_variant['image']
-                        if image_medium:
-                            image_response = requests.get(image_medium['src'], stream=True, verify=False,
-                                                          timeout=10)
-                            if image_response.status_code == 200:
-                                image_binary = base64.b64encode(image_response.content)
-                                odoo_variant.write({'image_medium': image_binary})
-                        variant_stock = woo_variant['stock_quantity']
-                        if variant_stock is None:
-                            variant_stock = 0
-                        stock_quant._update_available_quantity(odoo_variant, location, float(variant_stock))
-
-                # Now check if new variant has been added in Woo but not imported into Odoo
-                for val in woo_variant_vals:
-                    if val not in odoo_variants: #new variant as been added
-                        # find the variant
-                        index = woo_variant_vals.index(val)
-                        woo_variant = variations[val]
-                        # get the attributes:
-                        variant_attributes = woo_variant['attributes']
-                        list_all = []
-                        for attribute in variant_attributes:
-                            attr_name = attribute['name']
-                            attr_id = self.env['product.attribute'].search([('name', '=', attr_name)])
-                            attr_val = all_attrs_and_vals.get(attr_id)
-                            # now update product template attribute line (this will create new variants )
-                            p_tmpl_a_line = self.env['product.template.attribute.line'].search([('product_tmpl_id', '=', odoo_product.id)
-                                                                                                ('attribute_id', '=', attr_id)]).write(
-                                {'product_tmpl_id': odoo_product.id,
-                                 'attribute_id': attr_id,
-                                 'value_ids': [(6, 0, attr_val)]})
-                            list_all.append(p_tmpl_a_line.id)
-                            # print("List ALL", list_all)
-
-
-                        #get the current attribute lines
-                        current_attr_lines = odoo_product.attrbute_line_ids
-                        list
-                        prod_prods = odoo_product.write({'attribute_line_ids': [(6, 0, list_all)]})
-
-
-
-
-
-
-
-
-
-
-
             list_all = []
             for key in all_attrs_and_vals.keys():
                 # print("Key ", key)
                 # print("Values", all_attrs_and_vals[key])
                 list_val = all_attrs_and_vals[key]
-                p_tmpl_a_line = self.env['product.template.attribute.line'].create(
-                    {'product_tmpl_id': odoo_product.id,
-                     'attribute_id': key,
-                     'value_ids': [(6, 0, list_val)]})
+                # first check if already exist product.template-attribute.line for this attribute and product
+                ptal_exist = self.env['product.template.attribute.line'].search_count(
+                    [('product_tmpl_id', '=', odoo_product.id),
+                     ('attribute_id', '=', key)])
+                p_tmpl_a_line = []
+                if ptal_exist !=0 :
+                    p_tmpl_a_line = self.env['product.template.attribute.line'].search(
+                        [('product_tmpl_id', '=', odoo_product.id),
+                         ('attribute_id', '=', key)])
+                    p_tmpl_a_line.write({'value_ids': [(6, 0, list_val)]})
+                else:
+                    p_tmpl_a_line = self.env['product.template.attribute.line'].create(
+                        {'product_tmpl_id': odoo_product.id,
+                         'attribute_id': key,
+                         'value_ids': [(6, 0, list_val)]})
                 # print("PRODUCT TEMPLATE ATTRIBUTE LINE", p_tmpl_a_line)
                 list_all.append(p_tmpl_a_line.id)
                 # print("List ALL", list_all)
@@ -894,21 +706,65 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             location = self.env['stock.location'].search([('name', '=', 'Stock'),
                                                           ('location_id', '!=', None)], limit=1)
 
+            for odoo_variant in corresponding_product_variants:
+                # print("Odoo variant attrs lines: ", odoo_variant.attribute_value_ids )
+                value_ids = [value.id for value in odoo_variant.attribute_value_ids]
+                # print("VALUE IDS", value_ids)
+                # print("WOO WARIANT VALS", woo_variant_vals)
+                # print("Odoo Variant in Woo variants1", value_ids in woo_variant_vals)
+                if value_ids not in woo_variant_vals:
+                    odoo_variant.unlink()
+                    pass
 
-
+                else:
+                    index = woo_variant_vals.index(value_ids)
+                    woo_variant = variations[index]
+                    # print("Woo variant", woo_variant)
+                    status = True if woo_variant['status'] == 'publish' else False
+                    # print('Variant price', woo_variant['price'])
+                    odoo_variant.write({'woo_variant_id': woo_variant['id'],
+                                        'default_code': sku,
+                                        'active': status,
+                                        'type': 'product',
+                                        'price': float(woo_variant['price']),
+                                        'lst_price': float(woo_variant['price']),
+                                        'list_price': float(woo_variant['price']),
+                                        'price_extra': abs(
+                                            float(woo_product['price']) - float(woo_variant['price'])),
+                                        'woo_price': float(woo_variant['price']),
+                                        'woo_channel_id': self.id})
+                    # print('Variant list price', odoo_variant.lst_price)
+                    image_medium = woo_variant['image']
+                    if image_medium:
+                        image_response = requests.get(image_medium['src'], stream=True, verify=False,
+                                                      timeout=10)
+                        if image_response.status_code == 200:
+                            image_binary = base64.b64encode(image_response.content)
+                            odoo_variant.write({'image_medium': image_binary})
+                    variant_stock = woo_variant['stock_quantity']
+                    # print("VARIANT QUANTITY", variant_stock)
+                    if variant_stock is None:
+                        variant_stock = 0
+                    stock_exist = stock_quant.search_count([('product_id', '=', odoo_variant.id), ('location_id', '=', location.id)])
+                    if stock_exist != 0:
+                        stock = stock_quant.search([('product_id', '=', odoo_variant.id), ('location_id', '=', location.id)])
+                        # print("STOCK=======", stock)
+                        stock.write({'quantity': float(variant_stock)})
+                    else:
+                        stock = stock_quant._update_available_quantity(odoo_variant, location, float(variant_stock))
 
     def import_woo_products(self):
-        print("Products import")
+        # print("Products import")
         wcapi = self.create_woo_commerce_object()  # connect to Woo
         woo_products = wcapi.get('products', params={"per_page": 100}).json()  # get all Woo products
         woo_categories = wcapi.get('products/categories').json()  # get all Woo categories
-        woo_product_list =[]
+        woo_product_list = []
 
         # before product import, import all categories
-        print("=========================== CATEGORIES =================================================")
+        # print("=========================== CATEGORIES =================================================")
         self.import_woo_categories(woo_categories)
 
-        print("=========================== PRODUCTS =================================================")
+        # print("=========================== PRODUCTS =================================================")
         attribute_obj = self.env['product.attribute']
         value_obj = self.env['product.attribute.value']
         product_template = self.env['product.template']
@@ -923,20 +779,21 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_product_list.append(woo_id)
             sku = woo_product['sku']  # Stock keeping unit, should be unique - something like isbn on the books
             # check if product exist - search with sku number
-            master_product_exists = product_template.search([('default_code', '=', sku), ('master_id', '=', None)], limit=1)
-            print("Master product exist: ", master_product_exists)
+            master_product_exists = product_template.search([('default_code', '=', sku), ('master_id', '=', None)],
+                                                            limit=1)
+            # print("Master product exist: ", master_product_exists)
 
             if woo_product.get('variations') != []:
-                print('===============================================')
+                # print('===============================================')
                 product_id = woo_product['id']
                 variations = wcapi.get('products/' + str(product_id) + '/variations').json()
-                print("VARIATIONS", variations)
+                # print("VARIATIONS", variations)
                 all_attrs_and_vals = {}
                 # lista od listi so vrednosti na varijantite
                 woo_variant_vals = []
-                for variation in variations:
+                # for variation in variations:
                     # if the product has variants
-                    print(variation)
+                    # print(variation)
 
             # parse the product basic info
             woo_product_info = {
@@ -951,8 +808,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'default_code': str(sku),
                 'woo_sku': sku
             }
-            print("PRODUCT PRICE", woo_product['price'])
-            print("DICT1", woo_product_info)
+            # print("PRODUCT PRICE", woo_product['price'])
+            # print("DICT1", woo_product_info)
 
             # check if the product has tax
             tax_class = woo_product['tax_class']
@@ -970,125 +827,62 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # print("DICT2", woo_product_info)
 
             # if master product exist create/update the clone product for Woo Commerce
-            if  master_product_exists:
+            if master_product_exists:
                 print("Master product exist")
                 master_id = master_product_exists.id
-                print(master_product_exists.taxes_id)
-                print(master_id)
-                # Ako postoi master, proveri dali postoi clone,
-                # Ako ne postoi klone kreiraj go
-                # Ako postoi updejtni gi informaciite na klonot
+                # print(master_product_exists.taxes_id)
+                # print(master_id)
+                # if master exist check if clone exist
+                clone_exist =self.env['product.template'].search_count([('default_code', '=', sku),
+                                                                        ('master_id', '=', master_id),
+                                                                        ('channel_id', '=', self.id)])
+                if clone_exist:
+                    #if clone exist => update clone information
+                    woo_clone = self.env['product.template'].search([('default_code', '=', sku),
+                                                                 ('master_id', '=', master_id),
+                                                                 ('channel_id', '=', self.id)])
+                    # update product images (if exist)
+                    clone_woo_id = woo_clone.id
+                    aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
+                    woo_clone.write(aRelValues)
+                    # update product variants (if exist)
+                    self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+                else:
+                    #if clone does not exist => create woo clone
+                    woo_product_info.update({
+                        'woo_product_id': woo_product['id'],
+                        'channel_id': self.id,
+                        'master_id': master_id
+                    })
+                    # print("DICT4", woo_product_info)
+                    # print(woo_product_info['message_follower_ids'])
+                    if woo_product_info.get('message_follower_ids'):
+                        del woo_product_info['message_follower_ids']
+                    # print("DICT", woo_product_info)
+                    woo_clone = self.env['product.template'].create(woo_product_info)
+                    clone_woo_id = woo_clone.id
+
+                    # set images to the clone if the product has images
+                    aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
+                    woo_clone.write(aRelValues)
+
+                    # Add variants to the clone if the product has variants
+                    self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+
+
 
             # master product does not exist -> create master product and clone
             else:
                 # create master product
                 master_product = self.env['product.template'].create(woo_product_info)
-                print("DICT3", woo_product_info)
+                # print("DICT3", woo_product_info)
                 master_id = master_product.id
 
-                #get product images if it has
+                # get product images if it has
                 aRelValues = self.get_woo_product_images(woo_product, master_id)
                 master_product.write(aRelValues)
 
-                ################################## CODE FOR VARIANTS #############################################################
-                # check if the product has variants
-                # if woo_product.get('variations') != []:
-                #     print('===============================================')
-                #     product_id = woo_product['id']
-                #     variations = wcapi.get('products/' + str(product_id) + '/variations').json()
-                #     print("VARIATIONS", variations)
-                #     all_attrs_and_vals = {}
-                #     # lista od listi so vrednosti na varijantite
-                #     woo_variant_vals = []
-                #     for variation in variations:
-                #         # if the product has variants
-                #         print(variation)
-                #         # list_all = []
-                #         list_all_vals = []
-                #         # attr_id, list_vals = self.create_woo_attributes_and_values(variation)
-                #         # Atributi i vrednosti za site varijanti na proizvodot. primer Boja i site vrednosti za boja. Golemina i site golemini.
-                #         attr_and_vals = self.create_woo_attributes_and_values(variation)
-                #
-                #         print("ATTR_AND_VALS: ", attr_and_vals)
-                #         tmp_list = []
-                #         for attr_id in attr_and_vals.keys():
-                #             vals = attr_and_vals[attr_id]
-                #             vals.sort()
-                #             print("VALS ", vals)
-                #             tmp_list += vals
-                #             # print("Woo WALS", woo_variant_vals)
-                #
-                #             if attr_id in all_attrs_and_vals:
-                #                 all_attrs_and_vals[attr_id] += vals
-                #             else:
-                #                 all_attrs_and_vals[attr_id] = vals
-                #         # print("TMP Vals", tmp_list)
-                #         woo_variant_vals.append(tmp_list)
-                #         # print("Woo variant val", woo_variant_vals)
-                #     list_all = []
-                #     for key in all_attrs_and_vals.keys():
-                #         # print("Key ", key)
-                #         # print("Values", all_attrs_and_vals[key])
-                #         list_val = all_attrs_and_vals[key]
-                #         p_tmpl_a_line = self.env['product.template.attribute.line'].create(
-                #             {'product_tmpl_id': master_product.id,
-                #              'attribute_id': key,
-                #              'value_ids': [(6, 0, list_val)]})
-                #         # print("PRODUCT TEMPLATE ATTRIBUTE LINE", p_tmpl_a_line)
-                #         list_all.append(p_tmpl_a_line.id)
-                #         # print("List ALL", list_all)
-                #
-                #     # for the product create attribute_line_ids -> automatically product variants are being created
-                #     prod_prods = master_product.write({'attribute_line_ids': [(6, 0, list_all)]})
-                #     # print("Product_product", prod_prods)
-                #     # get the corresponding variants for the product
-                #     corresponding_product_variants = product_product.search(
-                #         [('product_tmpl_id', '=', master_product.id)])
-                #     # print("Coresponding product variants:", corresponding_product_variants)
-                #     location = self.env['stock.location'].search([('name', '=', 'Stock'),
-                #                                                   ('location_id', '!=', None)], limit=1)
-                #
-                #     for odoo_variant in corresponding_product_variants:
-                #         # print("Odoo variant attrs lines: ", odoo_variant.attribute_value_ids )
-                #         value_ids = [value.id for value in odoo_variant.attribute_value_ids]
-                #         # print("VALUE IDS", value_ids)
-                #         # print("WOO WARIANT VALS", woo_variant_vals)
-                #         # print("Odoo Variant in Woo variants1", value_ids in woo_variant_vals)
-                #         if value_ids not in woo_variant_vals:
-                #             odoo_variant.unlink()
-                #             pass
-                #
-                #         else:
-                #             index = woo_variant_vals.index(value_ids)
-                #             woo_variant = variations[index]
-                #             print("Woo variant", woo_variant)
-                #             status = True if woo_variant['status'] == 'publish' else False
-                #             print('Variant price', woo_variant['price'])
-                #             odoo_variant.write({'woo_variant_id': woo_variant['id'],
-                #                                 'default_code': sku,
-                #                                 'active': status,
-                #                                 'type': 'product',
-                #                                 'price': float(woo_variant['price']),
-                #                                 'lst_price': float(woo_variant['price']),
-                #                                 'list_price': float(woo_variant['price']),
-                #                                 'price_extra': abs(
-                #                                     float(woo_product['price']) - float(woo_variant['price'])),
-                #                                 'woo_price': float(woo_variant['price']),
-                #                                 'woo_channel_id': self.id})
-                #             print('Variant list price', odoo_variant.lst_price)
-                #             image_medium = woo_variant['image']
-                #             if image_medium:
-                #                 image_response = requests.get(image_medium['src'], stream=True, verify=False,
-                #                                               timeout=10)
-                #                 if image_response.status_code == 200:
-                #                     image_binary = base64.b64encode(image_response.content)
-                #                     odoo_variant.write({'image_medium': image_binary})
-                #             variant_stock = woo_variant['stock_quantity']
-                #             if variant_stock is None:
-                #                 variant_stock = 0
-                #             stock_quant._update_available_quantity(odoo_variant, location, float(variant_stock))
-
-                #check from product variants
+                # check from product variants
                 self.get_woo_product_variants(woo_product, wcapi, master_product)
                 # if does not have variants check if has attribute
 
@@ -1098,41 +892,20 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     'channel_id': self.id,
                     'master_id': master_id
                 })
-
                 # print("DICT4", woo_product_info)
-                print(woo_product_info['message_follower_ids'])
-                if woo_product_info['message_follower_ids']:
+                # print(woo_product_info['message_follower_ids'])
+                if woo_product_info.get('message_follower_ids'):
                     del woo_product_info['message_follower_ids']
                 # print("DICT", woo_product_info)
-                product_tmpl_woo = self.env['product.template'].create(woo_product_info)
-                product_tmpl_woo_id = product_tmpl_woo.id
+                woo_clone = self.env['product.template'].create(woo_product_info)
+                clone_woo_id = woo_clone.id
 
-                #set images to the clone if the product has images
-                aRelValues = self.get_woo_product_images(woo_product, product_tmpl_woo_id)
-                product_tmpl_woo.write(aRelValues)
+                # set images to the clone if the product has images
+                aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
+                woo_clone.write(aRelValues)
 
-                #Add variants to the clone if the product has variants
-                self.get_woo_product_variants(woo_product, wcapi, product_tmpl_woo)
+                # Add variants to the clone if the product has variants
+                self.get_woo_product_variants(woo_product, wcapi, woo_clone)
 
-
-
-
-
-                # # product_tmpl_woo = master_product.copy()
-                # # product_tmpl_woo.channel_id = self.id
-                # # product_tmpl_woo.master_id = master_id
-                # product_tmpl_woo.write(aRelValues)
-                # print(product_tmpl_woo)
-                # #
-
-                # if master_product:
-                #     print("Create product")
-                #     print("TAXES")
-                #     print(master_product)
-                #     t = master_product.taxes_id
-                #     for tax in t:
-                #         print(tax)
-                    # log product template creation
-
-        #check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
+        # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
         self.check_deleted_products(woo_product_list)
