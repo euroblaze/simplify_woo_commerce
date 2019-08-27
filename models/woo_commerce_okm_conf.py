@@ -448,6 +448,49 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # If yes delete the customer from Odoo too.
         self.check_deleted_customers(woo_customers_list)
 
+    # def import_woo_categories(self, woo_categories):
+    #     # INPUT - json format of Woo categories
+    #     # OUTPUT - importing this categories into Odoo product.category
+    #     woo_categories.sort(key=lambda s: s['parent'])
+    #     # print(woo_categories)
+    #     for category in woo_categories:
+    #         print(category)
+    #         duplicate_category = self.env['product.category'].search([('woo_category_id', '=', category['id'])])
+    #         if duplicate_category:
+    #             pass
+    #         else:
+    #             parent_path = ''
+    #             complete_name = ''
+    #             parent = category['parent']
+    #             if parent == 0:
+    #                 parent_path = str(category['id']) + '/'
+    #                 complete_name = str(category['name']) + '/'
+    #             else:
+    #                 parent_category = self.env['product.category'].search([('woo_category_id', '=', category['id']),
+    #                                                                        ('woo_channel_id', '=', self.id),
+    #                                                                        ('woo_parent_id', '=', category['parent'])],
+    #                                                                       limit=1)
+    #                 parent_path = str(parent_category.parent_path) + str(parent_category.id) + '/'
+    #                 complete_name = str(parent_category.complete_name) + str(category['name']) + '/'
+    #
+    #             parent = category['parent']
+    #             woo_category = {
+    #                 'woo_category_id': category['id'],
+    #                 # 'parent_id' : category['parent'],
+    #                 'woo_parent_id': category['parent'],
+    #                 'name': category['name'],
+    #                 'woo_channel_id': self.id,
+    #             }
+    #             print(woo_category)
+    #             created_category = self.env['product.category'].create(woo_category)
+    #             # created_category.write({'parent_path': parent_path})
+    #             # created_category.write({'complete_name': complete_name})
+    #             # parent_id = created_category.woo_parent_id
+    #             id = created_category.id
+    #             print(id)
+    #             # if parent_id != 0:
+    #             #     created_category.write({'parent_id': id})
+    #             # print(created_category.parent_id)
     def import_woo_categories(self, woo_categories):
         # INPUT - json format of Woo categories
         # OUTPUT - importing this categories into Odoo product.category
@@ -455,42 +498,63 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # print(woo_categories)
         for category in woo_categories:
             print(category)
-            duplicate_category = self.env['product.category'].search([('woo_category_id', '=', category['id'])])
-            if duplicate_category:
-                pass
-            else:
-                parent_path = ''
-                complete_name = ''
-                parent = category['parent']
-                if parent == 0:
-                    parent_path = str(category['id']) + '/'
-                    complete_name = str(category['name']) + '/'
-                else:
-                    parent_category = self.env['product.category'].search([('woo_category_id', '=', category['id']),
-                                                                           ('woo_channel_id', '=', self.id),
-                                                                           ('woo_parent_id', '=', category['parent'])],
+            duplicate_category = self.env['product.category'].search_count([('woo_category_id', '=', category['id']),('woo_channel_id', '=', self.id)])
+            print('DUPLICATE CATEGORY', duplicate_category)
+            if duplicate_category != 0:
+                odoo_category = self.env['product.category'].search([('woo_category_id', '=', category['id']),('woo_channel_id', '=', self.id)])
+                print('ODOO CATEGORY', odoo_category)
+                odoo_category.write({
+                    'woo_parent_id': category['parent'],
+                    'name': category['name'],
+                    'woo_channel_id': self.id,
+                })
+                woo_parent = odoo_category['woo_parent_id']
+                print("WOO PARENT", woo_parent)
+                if woo_parent != 0:
+                    parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
+                                                                           ('woo_channel_id', '=', self.id)
+                                                                           ],
                                                                           limit=1)
-                    parent_path = str(parent_category.parent_path) + str(parent_category.id) + '/'
-                    complete_name = str(parent_category.complete_name) + str(category['name']) + '/'
 
-                parent = category['parent']
-                woo_category = {
+                    print("CATEGORY PARENT 1", parent_category)
+                    print("EDIT PARENT--------------",odoo_category.write({
+                        'parent_id': parent_category.id
+                    }))
+
+            else:
+                odoo_category = self.env['product.category'].create({
                     'woo_category_id': category['id'],
                     # 'parent_id' : category['parent'],
                     'woo_parent_id': category['parent'],
                     'name': category['name'],
                     'woo_channel_id': self.id,
-                }
-                print(woo_category)
-                created_category = self.env['product.category'].create(woo_category)
-                # created_category.write({'parent_path': parent_path})
-                # created_category.write({'complete_name': complete_name})
-                # parent_id = created_category.woo_parent_id
-                id = created_category.id
-                print(id)
-                # if parent_id != 0:
-                #     created_category.write({'parent_id': id})
-                # print(created_category.parent_id)
+                })
+                woo_parent = odoo_category['woo_parent_id']
+                print("WOO PARENT", woo_parent)
+                if woo_parent != 0:
+                    parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
+                                                                           ('woo_channel_id', '=', self.id)
+                                                                           ],
+                                                                          limit=1)
+
+                    print("CATEGORY PARENT 1", parent_category)
+                    print("EDIT PARENT--------------", odoo_category.write({
+                        'parent_id': parent_category.id
+                    }))
+        all_woo_categories = self.env['product.category'].search([('woo_channel_id', '=', self.id)])
+        for category in all_woo_categories:
+            print("ODOO CATEGORIES", category)
+            woo_parent = category['woo_parent_id']
+            if woo_parent != 0:
+                parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
+                                                                       ('woo_channel_id', '=', self.id),
+                                                                        ('woo_parent_id', '=', None)],
+                                                                          limit=1)
+                print("CATEGORY PARENT", parent_category)
+                category.write({
+                    'parent_id': parent_category.id
+                })
+
 
     def get_current_product_price(self, woo_product):
         sale_price = woo_product['sale_price']  # Sale price in woo
@@ -816,6 +880,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             print("TAX CLASS", tax_class)
             if tax_class == '':
                 tax_class = 'standard'
+            print("TAX CLASS", tax_class)
             odoo_taxes = [tax.odoo_tax.id for tax in self.woo_taxes_map if tax.woo_tax.tax_class == tax_class]
 
 
