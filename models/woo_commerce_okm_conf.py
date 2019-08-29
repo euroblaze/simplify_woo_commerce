@@ -36,7 +36,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                              ('wc/v3', 'WC version 3.5.x or later'),
                                              ('wc/v2', 'WC version 3.0.x or later'),
                                              ('vc/v1', 'WC version 2.6.x or later'),
-                                             ], string='Woo Commerce Version', default='-1')
+                                             ], string='Woo Commerce Version', default='wc/v3')
     # Information fields for updates
     woo_last_update_product = fields.Datetime(string='Last product update', readonly=True)
     woo_last_update_order = fields.Datetime(string='Last order update', readonly=True)
@@ -87,18 +87,24 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     @api.one
     def import_woo_taxes(self):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
-        woo_taxes = wcapi.get("taxes")
-        print(woo_taxes)
-        woo_taxes = wcapi.get("taxes").json()  # get all Woo taxes
+        page = 1
+        woo_taxes = []
+        # get all Woo taxes
+        while True:
+            taxes_per_page = wcapi.get('taxes', params={"per_page": 100, "page": page}).json()
+            page += 1
+            if not taxes_per_page:
+                break
+            woo_taxes += taxes_per_page
         woo_taxes_obj = self.env['woo.taxes']
 
         # For every tax from woo taxes check if is created in woo.taxes table in odoo
         woo_tax_ids = []
-        print("+++++++++++")
-        print(woo_taxes)
+        # print("+++++++++++")
+        # print(woo_taxes)
         for tax in woo_taxes:
 
-            print(tax)
+            # print(tax)
             id = tax['id']
             woo_tax_ids.append(id)
             country = tax['country']
@@ -108,11 +114,11 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             rate = tax['rate']
             name = tax['name']
             tax_class = tax['class']
-            print("TAX CLASSSSSSS", tax_class)
+            # print("TAX CLASSSSSSS", tax_class)
 
             tax_exist = self.env['woo.taxes'].search_count([('woo_tax_id', '=', id)])
             if tax_exist == 1:  # First check if tax exist
-                print("Tax already exist")
+                # print("Tax already exist")
                 # maybe the tax is updated in woo, so write the attributes again
                 self.env['woo.taxes'].search([('woo_tax_id', '=', id)]).write({'country': country,
                                                                                'state': state,
@@ -131,7 +137,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                        'channel_id': self.id,
                                                        'tax_class': tax_class})
                     if is_created:
-                        print("tax created")
+                        # print("tax created")
                         logs = []
                         logs.append(
                             (0, 0, {'date': str(is_created.create_date),
@@ -157,24 +163,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         self.update({'log_lines': logs})
                 except Exception as e:
                     _logger.error(e)
-
-    # @api.one
-    # def map_woo_taxes(self):
-    #     print("Tax mapped")
-    #     view_id = self.env.ref('simplify_woo_commerce.woo_taxes_map').id
-    #
-    #     map_taxes = {
-    #         'name': 'Map Woo Taxes',
-    #         'type': 'ir.actions.act_window',
-    #         'view_type': 'form',
-    #         'view_mode': 'form',
-    #         'views': [(view_id, 'form')],
-    #         'view_id': view_id,
-    #         'res_model': 'woo.taxes.map',
-    #         'target': 'new',
-    #         'context': {'default_woo_channel_id': self.id}
-    #     }
-    #     return map_taxes
 
     def check_deleted_customers(self, woo_customers_list):
         odoo_customers = self.env['res.partner'].search([('woo_channel_id', '=', self.id)])
@@ -257,8 +245,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         customer_records = self.env['res.partner'].search([('woo_customer_id', '=', woo_customer_id),
                                                            ('woo_channel_id', '=', woo_channel_id)])
         update = False
-        print("======================")
-        print(woo_date_modified)
         woo_date_modified = woo_date_modified.split("T")
         woo_date_modified = woo_date_modified[0] + " " + woo_date_modified[1]
         woo_date_modified = datetime.datetime.strptime(woo_date_modified, '%Y-%m-%d %H:%M:%S')
@@ -266,20 +252,23 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             odoo_modification_date = str(record.write_date).split(".")
             odoo_modification_date = datetime.datetime.strptime(odoo_modification_date[0], '%Y-%m-%d %H:%M:%S')
             if odoo_modification_date < woo_date_modified:
-                print('Odoo modification date:')
-                print(odoo_modification_date)
-                print('Woo_date_modified: ')
-                print(woo_date_modified)
                 update = True
                 break
         return update
 
     def import_woo_customers(self):
-        # print("Customers imported.")
         wcapi = self.create_woo_commerce_object()  # connect to Woo
-        woo_customers = wcapi.get("customers").json()  # get all Woo customers
-        # print(woo_customers)
+        page = 1
+        woo_customers = []
+        # get all Woo orders
+        while True:
+            customers_per_page = wcapi.get('customers', params={"per_page": 100, "page": page}).json()
+            page += 1
+            if not customers_per_page:
+                break
+            woo_customers += customers_per_page
 
+        # print(woo_customers)
         res_partner = self.env['res.partner']
         woo_customers_list = []
 
@@ -448,78 +437,35 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # If yes delete the customer from Odoo too.
         self.check_deleted_customers(woo_customers_list)
 
-    # def import_woo_categories(self, woo_categories):
-    #     # INPUT - json format of Woo categories
-    #     # OUTPUT - importing this categories into Odoo product.category
-    #     woo_categories.sort(key=lambda s: s['parent'])
-    #     # print(woo_categories)
-    #     for category in woo_categories:
-    #         print(category)
-    #         duplicate_category = self.env['product.category'].search([('woo_category_id', '=', category['id'])])
-    #         if duplicate_category:
-    #             pass
-    #         else:
-    #             parent_path = ''
-    #             complete_name = ''
-    #             parent = category['parent']
-    #             if parent == 0:
-    #                 parent_path = str(category['id']) + '/'
-    #                 complete_name = str(category['name']) + '/'
-    #             else:
-    #                 parent_category = self.env['product.category'].search([('woo_category_id', '=', category['id']),
-    #                                                                        ('woo_channel_id', '=', self.id),
-    #                                                                        ('woo_parent_id', '=', category['parent'])],
-    #                                                                       limit=1)
-    #                 parent_path = str(parent_category.parent_path) + str(parent_category.id) + '/'
-    #                 complete_name = str(parent_category.complete_name) + str(category['name']) + '/'
-    #
-    #             parent = category['parent']
-    #             woo_category = {
-    #                 'woo_category_id': category['id'],
-    #                 # 'parent_id' : category['parent'],
-    #                 'woo_parent_id': category['parent'],
-    #                 'name': category['name'],
-    #                 'woo_channel_id': self.id,
-    #             }
-    #             print(woo_category)
-    #             created_category = self.env['product.category'].create(woo_category)
-    #             # created_category.write({'parent_path': parent_path})
-    #             # created_category.write({'complete_name': complete_name})
-    #             # parent_id = created_category.woo_parent_id
-    #             id = created_category.id
-    #             print(id)
-    #             # if parent_id != 0:
-    #             #     created_category.write({'parent_id': id})
-    #             # print(created_category.parent_id)
     def import_woo_categories(self, woo_categories):
         # INPUT - json format of Woo categories
         # OUTPUT - importing this categories into Odoo product.category
         woo_categories.sort(key=lambda s: s['parent'])
         # print(woo_categories)
         for category in woo_categories:
-            print(category)
+            # print(category)
             duplicate_category = self.env['product.category'].search_count([('woo_category_id', '=', category['id']),('woo_channel_id', '=', self.id)])
-            print('DUPLICATE CATEGORY', duplicate_category)
+            # print('DUPLICATE CATEGORY', duplicate_category)
             if duplicate_category != 0:
                 odoo_category = self.env['product.category'].search([('woo_category_id', '=', category['id']),('woo_channel_id', '=', self.id)])
-                print('ODOO CATEGORY', odoo_category)
+                # print('ODOO CATEGORY', odoo_category)
                 odoo_category.write({
                     'woo_parent_id': category['parent'],
                     'name': category['name'],
                     'woo_channel_id': self.id,
                 })
                 woo_parent = odoo_category['woo_parent_id']
-                print("WOO PARENT", woo_parent)
+                # print("WOO PARENT", woo_parent)
                 if woo_parent != 0:
                     parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
                                                                            ('woo_channel_id', '=', self.id)
                                                                            ],
                                                                           limit=1)
 
-                    print("CATEGORY PARENT 1", parent_category)
-                    print("EDIT PARENT--------------",odoo_category.write({
+                    # print("CATEGORY PARENT 1", parent_category)
+                    odoo_category.write({
                         'parent_id': parent_category.id
-                    }))
+                    })
 
             else:
                 odoo_category = self.env['product.category'].create({
@@ -530,31 +476,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     'woo_channel_id': self.id,
                 })
                 woo_parent = odoo_category['woo_parent_id']
-                print("WOO PARENT", woo_parent)
+                # print("WOO PARENT", woo_parent)
                 if woo_parent != 0:
                     parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
                                                                            ('woo_channel_id', '=', self.id)
                                                                            ],
                                                                           limit=1)
 
-                    print("CATEGORY PARENT 1", parent_category)
-                    print("EDIT PARENT--------------", odoo_category.write({
+                   # print("CATEGORY PARENT 1", parent_category)
+                    odoo_category.write({
                         'parent_id': parent_category.id
-                    }))
-        all_woo_categories = self.env['product.category'].search([('woo_channel_id', '=', self.id)])
-        for category in all_woo_categories:
-            print("ODOO CATEGORIES", category)
-            woo_parent = category['woo_parent_id']
-            if woo_parent != 0:
-                parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
-                                                                       ('woo_channel_id', '=', self.id),
-                                                                        ('woo_parent_id', '=', None)],
-                                                                          limit=1)
-                print("CATEGORY PARENT", parent_category)
-                category.write({
-                    'parent_id': parent_category.id
-                })
-
+                    })
 
     def get_current_product_price(self, woo_product):
         sale_price = woo_product['sale_price']  # Sale price in woo
@@ -817,10 +749,35 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     else:
                         stock = stock_quant._update_available_quantity(odoo_variant, location, float(variant_stock))
 
+    def find_category(self, woo_category_id):
+        category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),
+                                                        ('woo_channel_id', '=', self.id)])
+        return category.id
+
+    def check_woo_product_update(self, woo_date_modified, odoo_date_modified):
+        update = False
+        woo_date_modified = woo_date_modified.split("T")
+        woo_date_modified = woo_date_modified[0] + " " + woo_date_modified[1]
+        woo_date_modified = datetime.datetime.strptime(woo_date_modified, '%Y-%m-%d %H:%M:%S')
+        odoo_date_modified = str(odoo_date_modified).split(".")
+        odoo_date_modified = datetime.datetime.strptime(odoo_date_modified[0], '%Y-%m-%d %H:%M:%S')
+        if odoo_date_modified < woo_date_modified:
+            update = True
+        return update
+
     def import_woo_products(self):
         # print("Products import")
         wcapi = self.create_woo_commerce_object()  # connect to Woo
-        woo_products = wcapi.get('products', params={"per_page": 100}).json()  # get all Woo products
+        page = 1
+        woo_products = []
+        # get all Woo products
+        while True:
+            products_per_page = wcapi.get('products', params={"per_page": 100, "page": page}).json()
+            page += 1
+            if not products_per_page:
+                break
+            woo_products += products_per_page
+
         woo_categories = wcapi.get('products/categories').json()  # get all Woo categories
         woo_product_list = []
 
@@ -847,18 +804,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                             limit=1)
             # print("Master product exist: ", master_product_exists)
 
-            if woo_product.get('variations') != []:
-                # print('===============================================')
-                product_id = woo_product['id']
-                variations = wcapi.get('products/' + str(product_id) + '/variations').json()
-                # print("VARIATIONS", variations)
-                all_attrs_and_vals = {}
-                # lista od listi so vrednosti na varijantite
-                woo_variant_vals = []
-                # for variation in variations:
-                    # if the product has variants
-                    # print(variation)
-
+            product_categories = woo_product['categories']
+            woo_category_id = product_categories[0]['id']
             # parse the product basic info
             woo_product_info = {
                 'name': woo_product['name'],
@@ -872,22 +819,23 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'default_code': str(sku),
                 'woo_sku': sku,
 
+
             }
             # print("PRODUCT PRICE", woo_product['price'])
             # print("DICT1", woo_product_info)
             # check if the product has tax
             tax_class = woo_product['tax_class']
-            print("TAX CLASS", tax_class)
+            # print("TAX CLASS", tax_class)
             if tax_class == '':
                 tax_class = 'standard'
-            print("TAX CLASS", tax_class)
+            # print("TAX CLASS", tax_class)
             odoo_taxes = [tax.odoo_tax.id for tax in self.woo_taxes_map if tax.woo_tax.tax_class == tax_class]
 
 
 
             # if master product exist create/update the clone product for Woo Commerce
             if master_product_exists:
-                print("Master product exist")
+                # print("Master product exist")
                 master_id = master_product_exists.id
                 # print(master_product_exists.taxes_id)
                 # print(master_id)
@@ -895,27 +843,38 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 clone_exist =self.env['product.template'].search_count([('default_code', '=', sku),
                                                                         ('master_id', '=', master_id),
                                                                         ('channel_id', '=', self.id)])
+
                 if clone_exist:
                     #if clone exist => update clone information
                     woo_clone = self.env['product.template'].search([('default_code', '=', sku),
                                                                  ('master_id', '=', master_id),
                                                                  ('channel_id', '=', self.id)])
-                    # update product images (if exist)
-                    clone_woo_id = woo_clone.id
-                    aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
-                    woo_clone.write(aRelValues)
-                    # update product variants (if exist)
-                    self.get_woo_product_variants(woo_product, wcapi, woo_clone)
-                    print('Odoo taxes', odoo_taxes)
-                    woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
-                    woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
-                    # print("DICT2", woo_product_info)
+                    # check if product need to be updated
+                    woo_date_modified = woo_product['date_modified']
+                    odoo_date_modified = woo_clone.write_date
+                    update = self.check_woo_product_update(woo_date_modified, odoo_date_modified)
+                    if update:
+                        # update product images (if exist)
+                        clone_woo_id = woo_clone.id
+                        aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
+                        woo_clone.write(aRelValues)
+                        #update product category
+                        woo_clone.write({
+                            'categ_id': self.find_category(woo_category_id)
+                        })
+                        # update product variants (if exist)
+                        self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+                        # print('Odoo taxes', odoo_taxes)
+                        woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
+                        woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
+                        # print("DICT2", woo_product_info)
                 else:
                     #if clone does not exist => create woo clone
                     woo_product_info.update({
                         'woo_product_id': woo_product['id'],
                         'channel_id': self.id,
-                        'master_id': master_id
+                        'master_id': master_id,
+                        'categ_id': self.find_category(woo_category_id)
                     })
                     # print("DICT4", woo_product_info)
                     # print(woo_product_info['message_follower_ids'])
@@ -933,11 +892,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     self.get_woo_product_variants(woo_product, wcapi, woo_clone)
                     woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
                     woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
-
-                    # print("DICT2", woo_product_info)
-
-
-
             # master product does not exist -> create master product and clone
             else:
                 # create master product
@@ -957,7 +911,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 woo_product_info.update({
                     'woo_product_id': woo_product['id'],
                     'channel_id': self.id,
-                    'master_id': master_id
+                    'master_id': master_id,
+                    'categ_id': self.find_category(woo_category_id)
                 })
                 # print("DICT4", woo_product_info)
                 # print(woo_product_info['message_follower_ids'])
@@ -979,3 +934,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
         self.check_deleted_products(woo_product_list)
+
+    def import_woo_orders(self):
+        wcapi = self.create_woo_commerce_object()  # connect to Woo
+        page = 1
+        woo_orders = []
+        # get all Woo orders
+        while True:
+            orders_per_page = wcapi.get('orders', params={"per_page": 100, "page": page}).json()
+            page += 1
+            if not orders_per_page:
+                break
+            woo_orders += orders_per_page
+        for order in woo_orders:
+            print(order)
