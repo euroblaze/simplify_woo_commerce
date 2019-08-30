@@ -5,6 +5,15 @@ from odoo import models, fields, api
 class InhertProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    # @api.onchange('channel_id')
+    # def _onchange_channel(self):
+    #     if self._context.get('channel_id'):
+    #         print("DOMAIN", self._context.get('channel_id'))
+    #         return {
+    #             'domain': {
+    #                 'categ_id': [('woo_channel_id', '=', self._context.get('channel_id'))]
+    #             }}
+
     # woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', description="Woo Channel instance ID")
     woo_product_id = fields.Integer(string='Woo Product ID')
     woo_sale_price = fields.Float(string='Sale price', description="Price when the product is on sale")

@@ -88,7 +88,7 @@
                         </group>
                           <group>
 
-                                 <field name="woo_products">
+                                 <field name="woo_products" context="{'channel_id':id}">
                                      <tree>
                                          <field name="default_code" />
                                          <field name="name" />
@@ -107,6 +107,20 @@
                          </h3>
                          <group>
                              <button name="import_woo_orders" type="object" string="Import Orders" class="btn-primary"/>
+                         </group>
+                         <group>
+                             <field name="woo_orders" >
+                                 <tree>
+                                     <field name="name"/>
+                                     <field name="confirmation_date"/>
+                                     <field name="commitment_date"/>
+                                     <field name="expected_date"/>
+                                     <field name="partner_id"/>
+                                     <field name="user_id"/>
+                                     <field name="amount_total"/>
+                                     <field name="invoice_status"/>
+                                 </tree>
+                             </field>
                          </group>
                     </page>
                     <page name="Woo Commerce Scheduling" string="Scheduling" attrs="{'invisible': [('pos', '!=', '3')]}">

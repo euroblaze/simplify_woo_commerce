@@ -21,10 +21,14 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers",
                                     domain=[('parent_id', '=', None)])
     # Field for categories
-    woo_categories = fields.One2many('product.category', 'woo_channel_id', string="Product categories", )
+    woo_categories = fields.One2many('product.category', 'woo_channel_id',
+                                     string="Product categories", )
     # Field for products
     woo_products = fields.One2many('product.template', 'channel_id', string="Products",
                                    domain=[('woo_product_id', '!=', None)])
+    # Field for Sale Orders
+    woo_orders = fields.One2many('sale.order', 'woo_channel_id', string="Sale Orders")
+
 
     # Fields for Woo Commerce configuration
     woo_host = fields.Char(string='Host')
@@ -61,7 +65,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             consumer_key=self.woo_consumer_key,
             consumer_secret=self.woo_consumer_secret,
             wp_api="wp-json",
-            version=self.woo_commerce_version,
+            version=self.woo_commerce_version if self.woo_commerce_version != '-1' else 'wc/v3',
             timeout=100
         )
         print(wcapi)
@@ -649,7 +653,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_variant_vals = []
             for variation in variations:
                 # if the product has variants
-                # print(variation)
                 # Atributi i vrednosti za site varijanti na proizvodot. primer Boja i site vrednosti za boja. Golemina i site golemini.
                 attr_and_vals = self.create_woo_attributes_and_values(variation)
 
@@ -778,7 +781,16 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 break
             woo_products += products_per_page
 
-        woo_categories = wcapi.get('products/categories').json()  # get all Woo categories
+        woo_categories = []
+        #get all woo categories
+        page = 1
+        while True:
+            categories_per_page = wcapi.get('products/categories', params={"per_page": 100, "page": page}).json()
+            page += 1
+            if not products_per_page:
+                break
+            woo_categories += products_per_page
+
         woo_product_list = []
 
         # before product import, import all categories
@@ -795,6 +807,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         for woo_product in woo_products:
             print(woo_product)
+
             aRelValues = {}
             woo_id = woo_product['id']
             woo_product_list.append(woo_id)
@@ -935,6 +948,26 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
         self.check_deleted_products(woo_product_list)
 
+    def create_woo_order_lines(self, order_lines):
+
+        for line in order_lines:
+
+            product_id = line['product_id']
+            print("PRODUCT ID", product_id)
+
+            product = self.env['product.template'].search([('woo_product_id', '=', product_id),
+                                                           ('master_id', '!=', None),
+                                                           ('channel_id', '=', self.id)])
+            print("PRODUCT _LINE", product)
+
+            if line['variation_id']:
+                variant = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
+                                                              ('woo_channel_id', '=', self.id),
+                                                              ('product_tmpl_id', '=', product.id)])
+                print("Variant", variant)
+
+
+
     def import_woo_orders(self):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
         page = 1
@@ -946,5 +979,36 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             if not orders_per_page:
                 break
             woo_orders += orders_per_page
+
         for order in woo_orders:
             print(order)
+            woo_order_number = order['number']
+            woo_order_key = order['order_key']
+            partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                         ('woo_channel_id', '=', self.id),
+                                                         ('parent_id', '=', None)])
+            sale_order_info = {
+                'woo_channel_id': self.id,
+                'woo_order_number': woo_order_number,
+                'woo_order_key': woo_order_key,
+                'partner_id': partner_id.id,
+
+             }
+            print("SALE ORDER INFO", sale_order_info)
+
+            order_exists = self.env['sale.order'].search_count([('woo_channel_id', '=', self.id),
+                                                                ('woo_order_number', '=', woo_order_number),
+                                                                ('woo_order_key', '=', woo_order_key)])
+            order_lines = order['line_items']
+
+
+            if order_exists != 0:
+                #order exist => check if the order need to be updated
+                print("Order already exist")
+                sale_order = self.env['sale.order'].search([('woo_channel_id', '=', self.id),
+                                                            ('woo_order_number', '=', woo_order_number),
+                                                            ('woo_order_key', '=', woo_order_key)])
+            else: #create order
+                print("Create order")
+
+                self.create_woo_order_lines(order_lines)
