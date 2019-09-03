@@ -948,8 +948,10 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
         self.check_deleted_products(woo_product_list)
 
-    def create_woo_order_lines(self, order_lines):
+    def create_woo_order_lines(self, woo_order):
 
+        order_line_ids = []
+        order_lines = woo_order['line_items']
         for line in order_lines:
 
             product_id = line['product_id']
@@ -964,7 +966,20 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 variant = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
                                                               ('woo_channel_id', '=', self.id),
                                                               ('product_tmpl_id', '=', product.id)])
-                print("Variant", variant)
+                variant_id = variant.id
+                product_uom_qty = line['quantity']
+                prince_unit = float(line['subtotal']) / float(line['quantity'])
+                #here add code for more taxes
+                taxes_ids = []
+                # for tax in line['taxes']:
+                    # tax_id = int(tax[])
+
+
+
+
+
+
+
 
 
 
