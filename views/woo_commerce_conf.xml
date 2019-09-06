@@ -84,7 +84,6 @@
                         </h3>
                         <group >
                             <button name="import_woo_products" type="object" string="Import Products" class="btn-primary"/>
-                            <button name="export_woo_products" type="object" string="Export Products" class="btn-primary"/>
                         </group>
                           <group>
 
@@ -106,21 +105,21 @@
                                 Import Orders from Woo into Odoo
                          </h3>
                          <group>
-                             <button name="import_woo_orders" type="object" string="Import Orders" class="btn-primary"/>
+                             <button name="import_woo_orders_on_click" type="object" string="Import Orders" class="btn-primary"/>
                          </group>
                          <group>
-                             <field name="woo_orders" >
-                                 <tree>
-                                     <field name="name"/>
-                                     <field name="confirmation_date"/>
-                                     <field name="commitment_date"/>
-                                     <field name="expected_date"/>
-                                     <field name="partner_id"/>
-                                     <field name="user_id"/>
-                                     <field name="amount_total"/>
-                                     <field name="invoice_status"/>
-                                 </tree>
-                             </field>
+<!--                             <field name="woo_orders" >-->
+<!--                                 <tree>-->
+<!--                                     <field name="name"/>-->
+<!--                                     <field name="confirmation_date"/>-->
+<!--                                     <field name="commitment_date"/>-->
+<!--                                     <field name="expected_date"/>-->
+<!--                                     <field name="partner_id"/>-->
+<!--                                     <field name="user_id"/>-->
+<!--                                     <field name="amount_total"/>-->
+<!--                                     <field name="invoice_status"/>-->
+<!--                                 </tree>-->
+<!--                             </field>-->
                          </group>
                     </page>
                     <page name="Woo Commerce Scheduling" string="Scheduling" attrs="{'invisible': [('pos', '!=', '3')]}">

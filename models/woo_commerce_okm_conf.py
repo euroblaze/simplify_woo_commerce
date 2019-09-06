@@ -27,8 +27,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     woo_products = fields.One2many('product.template', 'channel_id', string="Products",
                                    domain=[('woo_product_id', '!=', None)])
     # Field for Sale Orders
-    woo_orders = fields.One2many('sale.order', 'woo_channel_id', string="Sale Orders")
-
+    # woo_orders = fields.One2many('sale.order', 'channel_id', string="Sale Orders")
 
     # Fields for Woo Commerce configuration
     woo_host = fields.Char(string='Host')
@@ -448,10 +447,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # print(woo_categories)
         for category in woo_categories:
             # print(category)
-            duplicate_category = self.env['product.category'].search_count([('woo_category_id', '=', category['id']),('woo_channel_id', '=', self.id)])
+            duplicate_category = self.env['product.category'].search_count(
+                [('woo_category_id', '=', category['id']), ('woo_channel_id', '=', self.id)])
             # print('DUPLICATE CATEGORY', duplicate_category)
             if duplicate_category != 0:
-                odoo_category = self.env['product.category'].search([('woo_category_id', '=', category['id']),('woo_channel_id', '=', self.id)])
+                odoo_category = self.env['product.category'].search(
+                    [('woo_category_id', '=', category['id']), ('woo_channel_id', '=', self.id)])
                 # print('ODOO CATEGORY', odoo_category)
                 odoo_category.write({
                     'woo_parent_id': category['parent'],
@@ -487,7 +488,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                            ],
                                                                           limit=1)
 
-                   # print("CATEGORY PARENT 1", parent_category)
+                    # print("CATEGORY PARENT 1", parent_category)
                     odoo_category.write({
                         'parent_id': parent_category.id
                     })
@@ -681,7 +682,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     [('product_tmpl_id', '=', odoo_product.id),
                      ('attribute_id', '=', key)])
                 p_tmpl_a_line = []
-                if ptal_exist !=0 :
+                if ptal_exist != 0:
                     p_tmpl_a_line = self.env['product.template.attribute.line'].search(
                         [('product_tmpl_id', '=', odoo_product.id),
                          ('attribute_id', '=', key)])
@@ -744,9 +745,11 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     # print("VARIANT QUANTITY", variant_stock)
                     if variant_stock is None:
                         variant_stock = 0
-                    stock_exist = stock_quant.search_count([('product_id', '=', odoo_variant.id), ('location_id', '=', location.id)])
+                    stock_exist = stock_quant.search_count(
+                        [('product_id', '=', odoo_variant.id), ('location_id', '=', location.id)])
                     if stock_exist != 0:
-                        stock = stock_quant.search([('product_id', '=', odoo_variant.id), ('location_id', '=', location.id)])
+                        stock = stock_quant.search(
+                            [('product_id', '=', odoo_variant.id), ('location_id', '=', location.id)])
                         # print("STOCK=======", stock)
                         stock.write({'quantity': float(variant_stock)})
                     else:
@@ -757,7 +760,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                         ('woo_channel_id', '=', self.id)])
         return category.id
 
-    def check_woo_product_update(self, woo_date_modified, odoo_date_modified):
+    def check_woo_update(self, woo_date_modified, odoo_date_modified):
         update = False
         woo_date_modified = woo_date_modified.split("T")
         woo_date_modified = woo_date_modified[0] + " " + woo_date_modified[1]
@@ -782,14 +785,14 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_products += products_per_page
 
         woo_categories = []
-        #get all woo categories
+        # get all woo categories
         page = 1
         while True:
             categories_per_page = wcapi.get('products/categories', params={"per_page": 100, "page": page}).json()
             page += 1
-            if not products_per_page:
+            if not categories_per_page:
                 break
-            woo_categories += products_per_page
+            woo_categories += categories_per_page
 
         woo_product_list = []
 
@@ -832,7 +835,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'default_code': str(sku),
                 'woo_sku': sku,
 
-
             }
             # print("PRODUCT PRICE", woo_product['price'])
             # print("DICT1", woo_product_info)
@@ -844,8 +846,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # print("TAX CLASS", tax_class)
             odoo_taxes = [tax.odoo_tax.id for tax in self.woo_taxes_map if tax.woo_tax.tax_class == tax_class]
 
-
-
             # if master product exist create/update the clone product for Woo Commerce
             if master_product_exists:
                 # print("Master product exist")
@@ -853,25 +853,25 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # print(master_product_exists.taxes_id)
                 # print(master_id)
                 # if master exist check if clone exist
-                clone_exist =self.env['product.template'].search_count([('default_code', '=', sku),
-                                                                        ('master_id', '=', master_id),
-                                                                        ('channel_id', '=', self.id)])
+                clone_exist = self.env['product.template'].search_count([('default_code', '=', sku),
+                                                                         ('master_id', '=', master_id),
+                                                                         ('channel_id', '=', self.id)])
 
                 if clone_exist:
-                    #if clone exist => update clone information
+                    # if clone exist => update clone information
                     woo_clone = self.env['product.template'].search([('default_code', '=', sku),
-                                                                 ('master_id', '=', master_id),
-                                                                 ('channel_id', '=', self.id)])
+                                                                     ('master_id', '=', master_id),
+                                                                     ('channel_id', '=', self.id)])
                     # check if product need to be updated
                     woo_date_modified = woo_product['date_modified']
                     odoo_date_modified = woo_clone.write_date
-                    update = self.check_woo_product_update(woo_date_modified, odoo_date_modified)
+                    update = self.check_woo_update(woo_date_modified, odoo_date_modified)
                     if update:
                         # update product images (if exist)
                         clone_woo_id = woo_clone.id
                         aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
                         woo_clone.write(aRelValues)
-                        #update product category
+                        # update product category
                         woo_clone.write({
                             'categ_id': self.find_category(woo_category_id)
                         })
@@ -882,7 +882,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
                         # print("DICT2", woo_product_info)
                 else:
-                    #if clone does not exist => create woo clone
+                    # if clone does not exist => create woo clone
                     woo_product_info.update({
                         'woo_product_id': woo_product['id'],
                         'channel_id': self.id,
@@ -948,38 +948,108 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
         self.check_deleted_products(woo_product_list)
 
-    def create_woo_order_lines(self, woo_order):
-
+    def create_woo_order_lines(self, order_lines, sale_order_id, update):
         order_line_ids = []
-        order_lines = woo_order['line_items']
+
         for line in order_lines:
 
-            product_id = line['product_id']
-            print("PRODUCT ID", product_id)
-
-            product = self.env['product.template'].search([('woo_product_id', '=', product_id),
+            product = self.env['product.template'].search([('woo_product_id', '=', line['product_id']),
                                                            ('master_id', '!=', None),
                                                            ('channel_id', '=', self.id)])
-            print("PRODUCT _LINE", product)
-
+            product_id = None
             if line['variation_id']:
-                variant = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
+                product_id = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
                                                               ('woo_channel_id', '=', self.id),
                                                               ('product_tmpl_id', '=', product.id)])
-                variant_id = variant.id
-                product_uom_qty = line['quantity']
-                prince_unit = float(line['subtotal']) / float(line['quantity'])
-                #here add code for more taxes
-                taxes_ids = []
-                # for tax in line['taxes']:
-                    # tax_id = int(tax[])
+
+            else:
+                product_id = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
+
+            # check if order line exist
+            order_line_exist = self.env['sale.order.line'].search_count([('order_id', '=', sale_order_id),
+                                                                         ('product_id', '=', product_id.id)])
+            tax_ids = []
+            odoo_taxes = []
+            for tax in line['taxes']:
+                woo_tax_id = tax['id']
+                odoo_tax = [tax.odoo_tax.id for tax in self.woo_taxes_map if tax.woo_tax.id == woo_tax_id]
+                print("ODOO TAX", odoo_tax)
+                odoo_taxes +=odoo_tax
+            print('ODOO TAXES', odoo_taxes)
 
 
 
 
+            order_line_info = {
+                'product_id': product_id.id,
+                'product_uom_qty': line['quantity'],
+                'name': '[' + str(product_id.default_code) + '] ' + str(product_id.product_tmpl_id.name),
+                'qty_invoiced': line['quantity'],
+                'price_unit': float(line['subtotal']) / float(line['quantity']),
+                'tax_id': [(6, 0, odoo_taxes)],
+                'price_subtotal': float(line['subtotal']),
+                'order_id': sale_order_id,
+            }
+            if order_line_exist != 0 and update:
+                # order line exist -> update
+                order_line = self.env['sale.order.line'].search([('order_id', '=', sale_order_id),
+                                                                 ('product_id', '=', product_id.id)])
+                order_line.write(order_line_info)
+                order_line_ids.append(order_line.id)
+            else:
+                # order line does not exist -> create
+                print("ORDER LINE INFO", order_line_info)
+                order_line = self.env['sale.order.line'].create(order_line_info)
+                order_line_ids.append(order_line.id)
+
+        return order_line_ids
 
 
+    def get_billing_and_shipping_info_from_order(self, order):
+        # invoice/billing information
+        billing_info = {}
+        if order['billing']:
+            billing_info = {
+                "woo_customer_id": order['customer_id'],
+                "name": order['billing']['first_name'] + " " + order['billing']['last_name'],
+                "company_name": order['billing']['company'],
+                "street": order['billing']['address_1'],
+                "street2": order['billing']['address_2'],
+                "city": order['billing']['city'],
+                "zip": order['billing']['postcode'],
+                "country": self.get_country_id(order['billing']['country']),
+                # "state": order['billing']['state'],
+                "email": order['billing']['email'],
+                "phone": order['billing']['phone'],
+                "type": "invoice",
+                "woo_channel_id": self.id
+            }
 
+        # shipping information
+        shipping_info = {}
+        if order['shipping']:
+            shipping_info = {
+                "woo_customer_id": order['customer_id'],
+                "name": order['shipping']['first_name'] + " " + order['shipping']['last_name'],
+                "company_name": order['shipping']['company'],
+                "street": order['shipping']['address_1'],
+                "street2": order['shipping']['address_2'],
+                "city": order['shipping']['city'],
+                "zip": order['shipping']['postcode'],
+                "country": self.get_country_id(order['shipping']['country']),
+                # "state": order['shipping']['state'],
+                "type": "delivery",
+                "woo_channel_id": self.id
+
+            }
+        return billing_info, shipping_info
+
+    def check_woo_deleted_orders(self, woo_order_numbers):
+        odoo_orders = self.env['sale.order'].search([('channel_id', '=', self.id)])
+        for order in odoo_orders:
+            if str(order.woo_order_number) not in woo_order_numbers:
+                order.state = 'cancel'
+                order.unlink()
 
 
 
@@ -995,35 +1065,173 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 break
             woo_orders += orders_per_page
 
+        woo_order_numbers = []
         for order in woo_orders:
             print(order)
             woo_order_number = order['number']
             woo_order_key = order['order_key']
+
+            woo_order_numbers.append(woo_order_number)
+
             partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
                                                          ('woo_channel_id', '=', self.id),
                                                          ('parent_id', '=', None)])
+
+
+            date_order = order['date_created'].split("T")
+            date_order = date_order[0] + " " + date_order[1]
+            date_order = datetime.datetime.strptime(date_order, '%Y-%m-%d %H:%M:%S')
+
             sale_order_info = {
-                'woo_channel_id': self.id,
+                # 'woo_channel_id': self.id,
                 'woo_order_number': woo_order_number,
                 'woo_order_key': woo_order_key,
                 'partner_id': partner_id.id,
+                'state': 'draft',
+                'channel_id': self.id,
+                'date_order': date_order
 
-             }
+            }
             print("SALE ORDER INFO", sale_order_info)
 
-            order_exists = self.env['sale.order'].search_count([('woo_channel_id', '=', self.id),
+            order_exists = self.env['sale.order'].search_count([('channel_id', '=', self.id),
                                                                 ('woo_order_number', '=', woo_order_number),
                                                                 ('woo_order_key', '=', woo_order_key)])
             order_lines = order['line_items']
-
+            billing_info = {}
+            shipping_info = {}
+            billing_info, shipping_info = self.get_billing_and_shipping_info_from_order(order)
+            billing_info['parent_id'] = partner_id.id
+            shipping_info['parent_id'] = partner_id.id
 
             if order_exists != 0:
-                #order exist => check if the order need to be updated
+                # order exist => check if the order need to be updated
                 print("Order already exist")
-                sale_order = self.env['sale.order'].search([('woo_channel_id', '=', self.id),
+                sale_order = self.env['sale.order'].search([('channel_id', '=', self.id),
                                                             ('woo_order_number', '=', woo_order_number),
                                                             ('woo_order_key', '=', woo_order_key)])
-            else: #create order
-                print("Create order")
+                # if order exist check if need to be updated
+                update = False
+                if order['date_modified']:
+                    update = self.check_woo_update(order['date_modified'], sale_order.write_date)
 
-                self.create_woo_order_lines(order_lines)
+                if update:
+                    # if the order was updated in Woo -> Update the order in Odoo
+                    # check if billing info for the customer exist
+                    billing_record_exist = self.env['res.partner'].search_count(
+                                                                                [('woo_customer_id', '=', order['customer_id']),
+                                                                                 ('woo_channel_id', '=', self.id),
+                                                                                 ('parent_id', '=', partner_id.id),
+                                                                                 ('type', '=', 'invoice')])
+                    billing_record = 0
+                    # if billing info does not exist -> create
+                    if billing_record_exist == 0:
+                        billing_record = self.env['res.partner'].create(billing_info)
+                    # else if billing info exist -> update in case of same changes
+                    else:
+                        billing_record = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                                         ('woo_channel_id', '=', self.id),
+                                                                         ('parent_id', '=', partner_id.id),
+                                                                         ('type', '=', 'invoice')])
+                        billing_record.write(billing_info)
+
+                    # check if shipping info for the customer exist
+                    shipping_record_exist = self.env['res.partner'].search_count(
+                        [('woo_customer_id', '=', order['customer_id']),
+                         ('woo_channel_id', '=', self.id),
+                         ('parent_id', '=', partner_id.id),
+                         ('type', '=', 'delivery')])
+                    shipping_record = 0
+                    # if shipping info does not exist -> create
+                    if shipping_record_exist == 0:
+                        shipping_record = self.env['res.partner'].create(shipping_info)
+                    # else if shipping info exist -> update in case of same changes
+                    else:
+                        shipping_record = self.env['res.partner'].search(
+                                                                [('woo_customer_id', '=', order['customer_id']),
+                                                                 ('woo_channel_id', '=', self.id),
+                                                                 ('parent_id', '=', partner_id.id),
+                                                                 ('type', '=', 'delivery')])
+                        shipping_record.write(shipping_info)
+
+                    print("Billing record", billing_record)
+                    print("Shipping record", shipping_record)
+                    sale_order_info['partner_invoice_id'] = billing_record.id
+                    sale_order_info['partner_shipping_id'] = shipping_record.id
+                    payment_term = self.env['account.payment.term'].search([('name', '=', '30 Net Days')])
+                    sale_order_info['payment_term_id'] = payment_term.id
+                    # update order info
+                    print('Sale order info', sale_order_info)
+                    sale_order.write(sale_order_info)
+                    order_lines = self.create_woo_order_lines(order_lines, sale_order.id, True)
+                    # add order lines
+                    sale_order.write({'order_line': [(6, 0, order_lines)]})
+
+
+
+
+
+
+
+            else:  # create order
+                print("Create order")
+                # check if billing info for the customer exist
+                billing_record_exist = self.env['res.partner'].search_count(
+                                                                    [('woo_customer_id', '=', order['customer_id']),
+                                                                     ('woo_channel_id', '=', self.id),
+                                                                     ('parent_id', '=', partner_id.id),
+                                                                     ('type', '=', 'invoice')])
+                billing_record = 0
+                # if billing info does not exist -> create
+                if billing_record_exist == 0:
+                    billing_record = self.env['res.partner'].create(billing_info)
+                # else if billing info exist -> update in case of same changes
+                else:
+                    billing_record = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                                     ('woo_channel_id', '=', self.id),
+                                                                     ('parent_id', '=', partner_id.id),
+                                                                     ('type', '=', 'invoice')])
+                    billing_record.write(billing_info)
+
+                # check if shipping info for the customer exist
+                shipping_record_exist = self.env['res.partner'].search_count(
+                                                                    [('woo_customer_id', '=', order['customer_id']),
+                                                                     ('woo_channel_id', '=', self.id),
+                                                                     ('parent_id', '=', partner_id.id),
+                                                                     ('type', '=', 'delivery')])
+                shipping_record = 0
+                # if shipping info does not exist -> create
+                if shipping_record_exist == 0:
+                    shipping_record = self.env['res.partner'].create(shipping_info)
+                # else if shipping info exist -> update in case of same changes
+                else:
+                    shipping_record = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                    ('woo_channel_id', '=', self.id),
+                                                    ('parent_id', '=', partner_id.id),
+                                                    ('type', '=', 'delivery')])
+                    shipping_record.write(shipping_info)
+                print("Billing record", billing_record)
+                print("Shipping record", shipping_record)
+                sale_order_info['partner_invoice_id'] = billing_record.id
+                sale_order_info['partner_shipping_id'] = shipping_record.id
+                payment_term = self.env['account.payment.term'].search([('name', '=', '30 Net Days')])
+                sale_order_info['payment_term_id'] = payment_term.id
+                # create order
+                print('Sale order info', sale_order_info)
+                sale_order = self.env['sale.order'].create(sale_order_info)
+                order_lines = self.create_woo_order_lines(order_lines, sale_order.id, False)
+                # add order lines
+                sale_order.write({'order_line': [(6, 0, order_lines)]})
+
+        # check if some order was deleted
+        self.check_woo_deleted_orders(woo_order_numbers)
+
+    def import_woo_orders_on_clink(self):
+    # This method usage is in case that some product/customer from the orders was not imported or updated previous
+        self.import_woo_taxes()
+        self.import_woo_products()
+        self.import_woo_customers()
+        self.import_woo_orders()
+
+
+
