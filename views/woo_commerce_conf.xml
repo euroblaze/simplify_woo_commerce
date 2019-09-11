@@ -1,5 +1,18 @@
 <odoo>
     <data>
+
+        <record id="woo_product_template_view" model="ir.actions.server">
+            <field name="name">Export to Woo Commerce</field>
+            <field name="model_id" ref="model_product_template"/>
+            <field name="binding_model_id" ref="model_product_template"/>
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                action = records.export_woo_products(records)
+            </field>
+        </record>
+
+
     <record id="channel_pos_settings_woo_commerce_connector_inherit" model="ir.ui.view">
       <field name="name">channel_pos_settings_woo_commerce_connector_inherit</field>
     		<field name="model">channel.pos.settings</field>
@@ -105,7 +118,7 @@
                                 Import Orders from Woo into Odoo
                          </h3>
                          <group>
-                             <button name="import_woo_orders_on_click" type="object" string="Import Orders" class="btn-primary"/>
+                             <button name="import_woo_orders_on_clink" type="object" string="Import Orders" class="btn-primary"/>
                          </group>
                          <group>
 <!--                             <field name="woo_orders" >-->

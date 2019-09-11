@@ -810,7 +810,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         for woo_product in woo_products:
             print(woo_product)
-
             aRelValues = {}
             woo_id = woo_product['id']
             woo_product_list.append(woo_id)
@@ -823,15 +822,21 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             product_categories = woo_product['categories']
             woo_category_id = product_categories[0]['id']
             # parse the product basic info
+            # print("Product price",  woo_product['price'].replace(",", "."))
+            print(woo_product['price'])
+            woo_sale_price = 0
+            if woo_product['price'] == '' and woo_product['sale_price'] == '':
+                woo_sale_price = 0
+
             woo_product_info = {
                 'name': woo_product['name'],
                 'type': 'product',
                 'active': True if woo_product['status'] == 'publish' else False,
                 # active da zavisi od Woo status or woo catalog_visibility
                 'description': woo_product['description'],
-                'woo_regular_price': woo_product['price'],  # regular price
-                'woo_sale_price': woo_product['sale_price'],  # price on sale
-                'price': woo_product['price'],  # current price
+                'woo_regular_price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,  # regular price
+                'woo_sale_price': float(woo_product['sale_price'].replace(",", ".")) if woo_product['sale_price'] != '' else woo_sale_price,  # price on sale
+                'price': float(woo_product['price'].replace(",", ".")),  # current price
                 'default_code': str(sku),
                 'woo_sku': sku,
 
@@ -968,7 +973,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # check if order line exist
             order_line_exist = self.env['sale.order.line'].search_count([('order_id', '=', sale_order_id),
                                                                          ('product_id', '=', product_id.id)])
-            tax_ids = []
+
             odoo_taxes = []
             for tax in line['taxes']:
                 woo_tax_id = tax['id']
@@ -993,7 +998,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             if order_line_exist != 0 and update:
                 # order line exist -> update
                 order_line = self.env['sale.order.line'].search([('order_id', '=', sale_order_id),
-                                                                 ('product_id', '=', product_id.id)])
+                                                                 ('product_id', '=', product_id.id)], limit=1)
                 order_line.write(order_line_info)
                 order_line_ids.append(order_line.id)
             else:
@@ -1003,7 +1008,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 order_line_ids.append(order_line.id)
 
         return order_line_ids
-
 
     def get_billing_and_shipping_info_from_order(self, order):
         # invoice/billing information
@@ -1050,8 +1054,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             if str(order.woo_order_number) not in woo_order_numbers:
                 order.state = 'cancel'
                 order.unlink()
-
-
 
     def import_woo_orders(self):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
@@ -1167,12 +1169,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     # add order lines
                     sale_order.write({'order_line': [(6, 0, order_lines)]})
 
-
-
-
-
-
-
             else:  # create order
                 print("Create order")
                 # check if billing info for the customer exist
@@ -1232,6 +1228,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         self.import_woo_products()
         self.import_woo_customers()
         self.import_woo_orders()
+
+
+
+
+
+
+
 
 
 
