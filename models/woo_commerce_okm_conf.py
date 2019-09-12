@@ -696,6 +696,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 list_all.append(p_tmpl_a_line.id)
                 # print("List ALL", list_all)
 
+
             # for the product create attribute_line_ids -> automatically product variants are being created
             prod_prods = odoo_product.write({'attribute_line_ids': [(6, 0, list_all)]})
             # print("Product_product", prod_prods)
@@ -806,7 +807,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         product_template = self.env['product.template']
         product_product = self.env['product.product']
         stock_quant = self.env['stock.quant']
-        stock_change_product_qty = self.env['stock.change.product.qty']
 
         for woo_product in woo_products:
             print(woo_product)
@@ -827,6 +827,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_sale_price = 0
             if woo_product['price'] == '' and woo_product['sale_price'] == '':
                 woo_sale_price = 0
+            print("STOCK", woo_product['stock_quantity'])
 
             woo_product_info = {
                 'name': woo_product['name'],
@@ -835,12 +836,16 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # active da zavisi od Woo status or woo catalog_visibility
                 'description': woo_product['description'],
                 'woo_regular_price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,  # regular price
-                'woo_sale_price': float(woo_product['sale_price'].replace(",", ".")) if woo_product['sale_price'] != '' else woo_sale_price,  # price on sale
-                'price': float(woo_product['price'].replace(",", ".")),  # current price
+                'woo_sale_price': float(woo_product['sale_price'].replace(",", ".")) if woo_product['sale_price'] != '' else None,  # price on sale
+                'price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,
                 'default_code': str(sku),
                 'woo_sku': sku,
 
+
             }
+            location = self.env['stock.location'].search(['&', ('name', '=', 'Stock'), ('location_id', '!=', None)], limit=1)
+            qty_available = float(woo_product['stock_quantity']) if woo_product['stock_quantity'] != None else 0
+
             # print("PRODUCT PRICE", woo_product['price'])
             # print("DICT1", woo_product_info)
             # check if the product has tax
@@ -871,6 +876,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     woo_date_modified = woo_product['date_modified']
                     odoo_date_modified = woo_clone.write_date
                     update = self.check_woo_update(woo_date_modified, odoo_date_modified)
+                    print("Woo date", woo_date_modified)
+                    print("Odoo date", odoo_date_modified)
+                    print("Update", update)
+
+                    variant_exist = self.env['product.product'].search([('product_tmpl_id', '=', woo_clone.id)])
+                    print("variant exist ", len(variant_exist))
+
                     if update:
                         # update product images (if exist)
                         clone_woo_id = woo_clone.id
@@ -885,7 +897,18 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         # print('Odoo taxes', odoo_taxes)
                         woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
                         woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
+                        woo_clone.write(woo_product_info)
                         # print("DICT2", woo_product_info)
+                        if len(variant_exist) == 1:
+                            stock_exist = stock_quant.search_count(
+                                [('product_id', '=', variant_exist.id), ('location_id', '=', location.id)])
+                            if stock_exist != 0:
+                                stock = stock_quant.search(
+                                    [('product_id', '=', variant_exist.id), ('location_id', '=', location.id)])
+                                # print("STOCK=======", stock)
+                                stock.write({'quantity': float(qty_available)})
+                            else:
+                                stock = stock_quant._update_available_quantity(variant_exist, location, float(qty_available))
                 else:
                     # if clone does not exist => create woo clone
                     woo_product_info.update({
@@ -910,6 +933,20 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     self.get_woo_product_variants(woo_product, wcapi, woo_clone)
                     woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
                     woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
+                    variant_exist = self.env['product.product'].search([('product_tmpl_id', '=', woo_clone.id)])
+                    print("variant exist ", len(variant_exist))
+                    if len(variant_exist) == 1:
+                        stock_exist = stock_quant.search_count(
+                            [('product_id', '=', variant_exist.id), ('location_id', '=', location.id)])
+                        if stock_exist != 0:
+                            stock = stock_quant.search(
+                                [('product_id', '=', variant_exist.id), ('location_id', '=', location.id)])
+                            # print("STOCK=======", stock)
+                            stock.write({'quantity': float(qty_available)})
+                        else:
+                            stock = stock_quant._update_available_quantity(variant_exist, location,
+                                                                           float(qty_available))
+
             # master product does not exist -> create master product and clone
             else:
                 # create master product

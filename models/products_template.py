@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError, RedirectWarning, UserError
+from odoo.addons import decimal_precision as dp
 
 #INHERT PRODUCT_TEMPLATE AND ADD NEW FIELDS FOR WOO_CHANNEL INSTANCE ID
 class InhertProductTemplate(models.Model):
@@ -11,7 +12,6 @@ class InhertProductTemplate(models.Model):
     woo_sale_price = fields.Float(string='Sale price', description="Price when the product is on sale")
     woo_regular_price = fields.Float(string='Regular price', description="Regular price of the product")
     woo_sku = fields.Char("Woo SKU")
-
 
 
     @api.depends('product_variant_ids', 'product_variant_ids.default_code')
@@ -37,9 +37,6 @@ class InhertProductTemplate(models.Model):
             for template in (self - unique_variants):
                 template.default_code = ''
 
-    @api.onchange('active')
-    def change_product_status(self):
-        print("Active", self.active)
 
     def toggle_active(self):
         super(InhertProductTemplate, self).toggle_active()
@@ -64,17 +61,29 @@ class InhertProductTemplate(models.Model):
 
     def export_woo_products(self, records):
         for product in records:
-            print()
+            print(int(product.channel_id.pos) == 3)
             if int(product.channel_id.pos) == 3:
-                wcapi = product.channel_id.create_woo_commerce_object()
-                data = {
-
-                }
-                print(wcapi.get)
                 woo_id = product.woo_product_id
-                if woo_id:
+
+
+                wcapi = product.channel_id.create_woo_commerce_object()
+
+                print('product taxes', product.taxes_id)
+                data = {
+                    'name': product.name,
+                    'description': product.description,
+                    'sku': product.default_code,
+                    'price': product.lst_price,
+                    'regular_price': product.woo_regular_price if product.woo_regular_price else None,
+                    'sale_price': product.woo_sale_price if product.woo_sale_price else None,
+                }
+                print(product)
+                print(woo_id)
+                print(wcapi.get("products/%s" % (woo_id)).json())
+
+                if woo_id: #If woo id exist update the product in Woo
                     print()
-                else:
+                else: #If the product exist in Odoo but not in Woo, create the product in Woo
                     print()
 
 

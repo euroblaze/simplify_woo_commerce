@@ -23,9 +23,6 @@ class ImportWooTaxes(models.Model):
     tax_class = fields.Char(string='Class')
 
 
-
-
-
 #CLASS FOR MAPPING ODOO <-> WOO TAXES
 class ChannelWooTaxes(models.Model):
     _name = 'woo.taxes.map'
@@ -43,7 +40,6 @@ class ChannelWooTaxes(models.Model):
         # data = json.loads(cache)
         # print(data['params']['kwargs']['context']['channel_id'])
         # id = data['params']['kwargs']['context']['channel_id']
-
 
     #set the domain for woo_tax to show just the taxes imported from the current woo instance
     @api.onchange('woo_channel_id')
