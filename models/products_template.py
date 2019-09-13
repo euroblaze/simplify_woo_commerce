@@ -1,7 +1,43 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError, RedirectWarning, UserError
-from odoo.addons import decimal_precision as dp
+from .. python_magic_0_4_11 import magic
+from .. wordpress_xmlrpc import base
+from .. wordpress_xmlrpc import compat
+from .. wordpress_xmlrpc import media
+import base64
+import tempfile
+
+class SpecialTransport(compat.xmlrpc_client.Transport):
+    user_agent = 'Mozilla/5.0 (Windows NT 6.0) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.43 Safari/537.31'
+
+
+def upload_image(image_data, image_name, host, username, password):
+    if not image_data or not image_name:
+        return {}
+    client = base.Client('%s/xmlrpc.php' % (host), username,
+                         password, transport=SpecialTransport())
+    data = base64.decodestring(image_data)
+    # create a temporary file, and save the image
+    fobj = tempfile.NamedTemporaryFile(delete=False)
+    filename = fobj.name
+    image = fobj.write(data)
+    fobj.close()
+    mimetype = magic.from_file(filename, mime=True)
+    # prepare metadata
+    data = {
+        'name': '%s.%s' % (image_name, mimetype.split(b"/")[1].decode('utf-8')),
+        'type': mimetype,  # mimetype
+    }
+
+    # read the binary file and let the XMLRPC library encode it into base64
+    with open(filename, 'rb') as img:
+        data['bits'] = compat.xmlrpc_client.Binary(img.read())
+
+    res = client.call(media.UploadFile(data))
+
+    return res
+
 
 #INHERT PRODUCT_TEMPLATE AND ADD NEW FIELDS FOR WOO_CHANNEL INSTANCE ID
 class InhertProductTemplate(models.Model):
@@ -67,24 +103,147 @@ class InhertProductTemplate(models.Model):
 
 
                 wcapi = product.channel_id.create_woo_commerce_object()
+                print("API", wcapi.__dict__)
 
-                print('product taxes', product.taxes_id)
+
+                taxes = self.env['woo.taxes.map'].search([('woo_channel_id', '=', product.channel_id.id)])
+                taxes_class = []
+                if len(product.taxes_id) > 0:
+                    for tax in taxes:
+                        if tax.odoo_tax in product.taxes_id:
+                            taxes_class.append(tax.woo_tax.tax_class)
+
+                print("Product category", product.categ_id)
+                categ_id = product.categ_id
+                categ_data = {
+                    'name': categ_id.name,
+                    'parent': categ_id.woo_category_id if categ_id.woo_category_id != None else None
+                }
+                if categ_id.woo_channel_id: # this category exist in Woo -> update the category
+                    wcapi.put("products/categories/%s" %(categ_id.woo_category_id), categ_data)
+                    categ_data['id'] = categ_id.woo_category_id
+
+                else: # the category does not exist in Woo -> create the category in Woo
+                    categ_id.write({'woo_channel_id': product.channel_id.id})
+                    category = wcapi.post("products/catgeories",categ_data).json()
+                    categ_data['id'] = category['id']
+                # get product images
+                images = []
+                image_medium = product.image_medium  # binary data of product image medium
+                if image_medium is not None:
+                    res = upload_image(image_medium, product.name, product.channel_id.woo_host,
+                                       product.channel_id.woo_username, product.channel_id.woo_password)
+                    image = {
+                        'id': res['attachment_id'],
+                        'src': res['link'],
+                        'name': res['title']
+                    }
+                    images.append(image)
+
+                for image in product.product_image_ids:
+                    print("IMAGE", image.image)
+                    res = upload_image(image.image, image.name, product.channel_id.woo_host, product.channel_id.woo_username, product.channel_id.woo_password)
+                    image = {
+                        'id': res['attachment_id'],
+                        'src': res['link'],
+                        'name': res['title']
+                    }
+                    images.append(image)
+
                 data = {
                     'name': product.name,
                     'description': product.description,
                     'sku': product.default_code,
-                    'price': product.lst_price,
-                    'regular_price': product.woo_regular_price if product.woo_regular_price else None,
-                    'sale_price': product.woo_sale_price if product.woo_sale_price else None,
+                    'price': str(product.lst_price),
+                    'regular_price': str(product.lst_price),
+                    'sale_price': str(product.woo_sale_price),
+                    'tax_class': taxes_class[0] if len(taxes_class) > 0 else None,
+                    'stock.quantity': product.qty_available,
+                    'weight': str(product.weight),
+                    'categories': [
+                        {
+                            'id': categ_data['id']
+                        }
+                    ],
+                    'images': images
                 }
-                print(product)
-                print(woo_id)
-                print(wcapi.get("products/%s" % (woo_id)).json())
 
-                if woo_id: #If woo id exist update the product in Woo
-                    print()
-                else: #If the product exist in Odoo but not in Woo, create the product in Woo
-                    print()
+
+                # If the product exist in Odoo but not in Woo, create the product in Woo
+                if woo_id is None:
+                    woo_product = wcapi.post("products", data).json()
+                    print("create product ", woo_product)
+                    woo_id = woo_product['id']
+                    product.write({'woo_product_id': woo_id})
+
+                #If woo id exist update the product in Woo
+                # if the product has variant update/create the variants too
+                attributes = product.attribute_line_ids
+                print('Attributes', attributes)
+                if len(attributes) > 0:
+                    variants = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
+                    variations = []
+                    variant_data = {}
+
+
+
+                    for variant in variants:
+                        print("variant weight", str(variant.weight))
+
+
+                        variant_data = {
+                                'description': variant.description,
+                                'price': str(variant.lst_price),
+                                'regular_price': str(variant.lst_price),
+                                'tax_class': taxes_class[0] if len(taxes_class) > 0 else None,
+                                'stock.quantity': variant.qty_available,
+                                'weight': str(variant.weight),
+                            }
+                        image = {}
+                        image_medium = variant.image_medium  # binary data of product image medium
+                        if image_medium is not None:
+                            res = upload_image(image_medium, str(product.name)+str(variant.id), product.channel_id.woo_host,
+                                               product.channel_id.woo_username, product.channel_id.woo_password)
+                            image = {
+                                'id': res['attachment_id'],
+                                'src': res['link'],
+                                'name': res['title']
+                            }
+
+                            variant_data['image'] = image
+                         # Add attributes
+                        attributes = []
+                        variant_attributes = variant.attribute_value_ids
+                        for attribute in variant_attributes:
+                            attribute_data = {}
+                            attribute_data['name'] = attribute.attribute_id.name
+                            attribute_data['option'] = attribute.name
+                            attributes.append(attribute_data)
+                        variant_data['attributes'] = attributes
+
+                        # Add woo ID if exist -> update variant
+
+                        if variant.woo_variant_id != None:
+                            variant_data['id'] = variant.woo_variant_id
+                            print("Update variant", wcapi.put("products/%s/variations/%s" % (woo_id, variant.woo_variant_id), variant_data).json())
+
+                        else: # -> create variant
+                            var = wcapi.post("products/%s/variations" % (woo_id), variant_data).json()
+                            print("Create variant", var)
+                            variant_data['id'] = var['id']
+
+
+
+
+                        variations.append(variant_data['id'])
+                        # create/update variant and then get the variant id
+                    data['variations'] = variations
+
+
+                print("Update product", wcapi.put('products/%s'% (woo_id), data).json())
+
+
+
 
 
 

@@ -3,11 +3,10 @@
     'name': "simplify_woo_commerce",
 
     'summary': """
-        Short (1 phrase/line) summary of the module's purpose, used as
-        subtitle on modules listing or apps.openerp.com""",
+        Woo Commerce Connector""",
 
     'description': """
-       Woo Commerce Connector
+       Odoo module for connecting with any Woo Commerce Shop. 
     """,
 
     'author': "simplify-erp",

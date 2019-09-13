@@ -557,6 +557,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # print("Attribute exist in Odoo", attr_name.lower() in odoo_attr_names_and_ids.keys())
             if attr_name.lower() in odoo_attr_names_and_ids.keys():
                 # attribute already exist
+                attribute_id = odoo_attr_names_and_ids[attr_name.lower()]
+                atribute = attribute_obj.browse(attribute_id)
+                atribute.write({'woo_attribute_id': attribute['id']})
                 attr_id = odoo_attr_names_and_ids[attr_name.lower()]
                 # print('Attribute exiat with ID ', attr_id)
                 # check if value exist
@@ -573,7 +576,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     # print("Created value", create_value)
                     list_vals.append(create_value.id)
             else:  # attribute does not exist => create attribute
-                attribute_create = attribute_obj.create({'name': attr_name})
+                attribute_create = attribute_obj.create({'name': attr_name, 'woo_attribute_id': attribute['id']})
                 # print("Attribute create", attribute_create)
                 attr_id = attribute_create.id
                 # create value
@@ -653,6 +656,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # lista od listi so vrednosti na varijantite
             woo_variant_vals = []
             for variation in variations:
+                print('Variant ', variation)
                 # if the product has variants
                 # Atributi i vrednosti za site varijanti na proizvodot. primer Boja i site vrednosti za boja. Golemina i site golemini.
                 attr_and_vals = self.create_woo_attributes_and_values(variation)
