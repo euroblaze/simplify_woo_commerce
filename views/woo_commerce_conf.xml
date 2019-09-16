@@ -12,7 +12,7 @@
                             <group>
                                 <field name="woo_host"  attrs="{'required': [('pos', '==', '3')]}"/>
                                 <field name="woo_username"  attrs="{'required': [('pos', '==', '3')]}"/>
-                                <field name="woo_password"  attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_password"  attrs="{'required': [('pos', '==', '3')]}" password="True"/>
                             </group>
                             <group>
                                 <field name="woo_consumer_key"  attrs="{'required': [('pos', '==', '3')]}"/>

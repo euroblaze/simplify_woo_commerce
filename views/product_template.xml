@@ -1,0 +1,28 @@
+<odoo>
+    <data>
+        <record id="woo_product_template_view" model="ir.actions.server">
+            <field name="name">Export to Woo Commerce</field>
+            <field name="model_id" ref="model_product_template"/>
+            <field name="binding_model_id" ref="model_product_template"/>
+            <field name="state">code</field>
+            <field name="code" >
+                if records:
+                action = records.export_woo_products(records)
+            </field>
+        </record>
+
+
+        <record id="view_product_template_form_woo_inherited" model="ir.ui.view">
+        <field name="name">product.template.woo.fields</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='general_information']//field[@name='list_price']" position='after'>
+                <field name="pos" invisible="1"/>
+                <field name="woo_regular_price" attrs="{'required': [('pos', '==', 3)], 'ivisible': [('pos', '!=', 3)]}"/>
+                <field name="woo_sale_price" attrs="{'required': [('pos', '==', 3)], 'ivisible': [('pos', '!=', 3)]}"/>
+            </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

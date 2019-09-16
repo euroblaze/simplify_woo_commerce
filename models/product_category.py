@@ -9,9 +9,3 @@ class InhertProductCategory(models.Model):
     woo_category_id = fields.Integer(string='Woo Category ID')
     woo_parent_id = fields.Integer(string='Woo Category ID')
 
-# class InhertIRCron(models.Model):
-#     _inherit = 'ir.model'
-#
-#     woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', description="Woo Channel instance ID")
-#
-#
