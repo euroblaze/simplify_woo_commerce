@@ -23,7 +23,7 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'views/woo_taxes.xml',
         'views/woo_commerce_conf.xml',
         'views/templates.xml',
