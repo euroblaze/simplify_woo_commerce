@@ -155,7 +155,7 @@ class InhertProductTemplate(models.Model):
                         'name': res['title']
                     }
                     images.append(image)
-                print("PRODUCT IMAGES",len(product.product_image_ids)>0 )
+                print("PRODUCT IMAGES", len(product.product_image_ids)>0 )
                 if len(product.product_image_ids) > 0:
                     for image in product.product_image_ids:
                         print("IMAGE", image.image)
@@ -210,6 +210,7 @@ class InhertProductTemplate(models.Model):
 
 
                     for variant in variants:
+                        print("VARIANT WOO ID", variant.woo_variant_id )
                         print("variant weight", str(variant.weight))
 
 
@@ -245,11 +246,13 @@ class InhertProductTemplate(models.Model):
 
                         # Add woo ID if exist -> update variant
 
-                        if variant.woo_variant_id != None:
+                        if variant.woo_variant_id:
                             variant_data['id'] = variant.woo_variant_id
                             print("Update variant", wcapi.put("products/%s/variations/%s" % (woo_id, variant.woo_variant_id), variant_data).json())
 
                         else: # -> create variant
+                            print("Woo ID", woo_id)
+                            print("Variant Data", variant_data)
                             var = wcapi.post("products/%s/variations" % (woo_id), variant_data).json()
                             print("Create variant", var)
                             variant_data['id'] = var['id']

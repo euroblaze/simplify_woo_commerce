@@ -1137,10 +1137,37 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_order_key = order['order_key']
 
             woo_order_numbers.append(woo_order_number)
-
-            partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+            billing_info = {}
+            shipping_info = {}
+            billing_info, shipping_info = self.get_billing_and_shipping_info_from_order(order)
+            if billing_info.get('message_follower_ids'):
+                del billing_info['message_follower_ids']
+            if shipping_info.get('message_follower_ids'):
+                del shipping_info['message_follower_ids']
+            print("Billing INFO", shipping_info)
+            personal_customer_info = {}
+            partner_id = 0
+            if order['customer_id']:
+                customer = wcapi.get("customers/%s" %(order['customer_id'])).json()
+                role = customer['role']
+                if role != 'customer':
+                    personal_customer_info = billing_info
+                    print("PERSONAL INFO", personal_customer_info)
+                    personal_customer_info['type'] = 'contact'
+                    partner_id = self.env['res.partner'].create(personal_customer_info)
+                else:
+                    partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
                                                          ('woo_channel_id', '=', self.id),
                                                          ('parent_id', '=', None)])
+            else:
+                personal_customer_info = billing_info
+                print("PERSONAL INFO", personal_customer_info)
+                personal_customer_info['type'] = 'contact'
+                partner_id = self.env['res.partner'].create(personal_customer_info)
+                print("partner ID", partner_id)
+
+            billing_info['parent_id'] = partner_id.id
+            shipping_info['parent_id'] = partner_id.id
 
 
             date_order = order['date_created'].split("T")
@@ -1163,11 +1190,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                 ('woo_order_number', '=', woo_order_number),
                                                                 ('woo_order_key', '=', woo_order_key)])
             order_lines = order['line_items']
-            billing_info = {}
-            shipping_info = {}
-            billing_info, shipping_info = self.get_billing_and_shipping_info_from_order(order)
-            billing_info['parent_id'] = partner_id.id
-            shipping_info['parent_id'] = partner_id.id
+
+
 
             if order_exists != 0:
                 # order exist => check if the order need to be updated
