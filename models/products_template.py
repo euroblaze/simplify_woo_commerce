@@ -48,6 +48,9 @@ class InhertProductTemplate(models.Model):
     woo_sale_price = fields.Float(string='Woo Sale price', description="Price when the product is on sale")
     woo_regular_price = fields.Float(string='Woo Regular price', description="Regular price of the product")
     woo_sku = fields.Char("Woo SKU")
+    default_code = fields.Char(
+        'Internal Reference', compute='_compute_default_code',
+        inverse='_set_default_code', store=True, required = True)
 
     def _compute_pos(self):
         if self.channel_id:
