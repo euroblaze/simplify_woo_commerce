@@ -106,11 +106,12 @@ class InhertProductTemplate(models.Model):
         for product in records:
             print(int(product.channel_id.pos) == 3)
             if int(product.channel_id.pos) == 3:
+
+
                 woo_id = product.woo_product_id
                 data ={}
                 wcapi = product.channel_id.create_woo_commerce_object()
                 print("API", wcapi.__dict__)
-
 
                 taxes = self.env['woo.taxes.map'].search([('woo_channel_id', '=', product.channel_id.id)])
                 taxes_class = []
@@ -174,7 +175,7 @@ class InhertProductTemplate(models.Model):
                     'sku': product.default_code if product.default_code is not None else None,
                     'price': str(product.lst_price),
                     'regular_price': str(product.lst_price),
-                    'sale_price': str(product.woo_sale_price),
+                    'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else ' ',
                     'tax_class': taxes_class[0] if len(taxes_class) > 0 else None,
                     'stock.quantity': product.qty_available,
                     'weight': str(product.weight),
@@ -188,7 +189,7 @@ class InhertProductTemplate(models.Model):
 
 
                 # If the product exist in Odoo but not in Woo, create the product in Woo
-                print("WOO ID ",woo_id)
+                print("WOO ID ", woo_id)
                 if woo_id == 0:
                     woo_product = wcapi.post("products", data).json()
                     print("create product ", woo_product)

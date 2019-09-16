@@ -496,9 +496,20 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # If yes delete the customer from Odoo too.
         self.check_deleted_customers(woo_customers_list)
 
-    def import_woo_categories(self, woo_categories):
+    def import_woo_categories(self):
         # INPUT - json format of Woo categories
         # OUTPUT - importing this categories into Odoo product.category
+        wcapi = self.create_woo_commerce_object()
+        woo_categories = []
+        # get all woo categories
+        page = 1
+        while True:
+            categories_per_page = wcapi.get('products/categories', params={"per_page": 100, "page": page}).json()
+            page += 1
+            if not categories_per_page:
+                break
+            woo_categories += categories_per_page
+
         woo_categories.sort(key=lambda s: s['parent'])
         # print(woo_categories)
         for category in woo_categories:
@@ -812,6 +823,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 break
             woo_products += products_per_page
 
+        wcapi = self.create_woo_commerce_object()
         woo_categories = []
         # get all woo categories
         page = 1
@@ -826,7 +838,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # before product import, import all categories
         # print("=========================== CATEGORIES =================================================")
-        self.import_woo_categories(woo_categories)
+        self.import_woo_categories()
 
         # print("=========================== PRODUCTS =================================================")
         attribute_obj = self.env['product.attribute']
