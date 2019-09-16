@@ -15,7 +15,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     _inherit = 'channel.pos.settings'
 
     # pos field inherited and added id =3 for Woo Commerce Channel
-    pos = fields.Selection(selection_add=[('3', 'Woo Commerce')])
+    pos = fields.Selection(selection_add=[( '3', 'Woo Commerce')])
 
     # Field for tax mapping
     woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Taxes")
