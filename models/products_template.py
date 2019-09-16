@@ -26,7 +26,7 @@ def upload_image(image_data, image_name, host, username, password):
     mimetype = magic.from_file(filename, mime=True)
     # prepare metadata
     data = {
-        'name': '%s.%s' % (image_name, mimetype.split(b"/")[1].decode('utf-8')),
+        'name': '%s_%s.%s' % ("image", image_name, mimetype.split(b"/")[1].decode('utf-8')),
         'type': mimetype,  # mimetype
     }
 
@@ -125,14 +125,21 @@ class InhertProductTemplate(models.Model):
                     'name': categ_id.name,
                     'parent': categ_id.woo_category_id if categ_id.woo_category_id != None else None
                 }
+                print("CATEG DATA", categ_data)
                 if categ_id.woo_channel_id: # this category exist in Woo -> update the category
+                    print("Category exist in Woo")
                     wcapi.put("products/categories/%s" %(categ_id.woo_category_id), categ_data)
                     categ_data['id'] = categ_id.woo_category_id
 
                 else: # the category does not exist in Woo -> create the category in Woo
+                    print('Category does not exist in Woo')
                     categ_id.write({'woo_channel_id': product.channel_id.id})
-                    category = wcapi.post("products/catgeories",categ_data).json()
+                    print("CATEG ID", categ_id.woo_channel_id)
+                    category = wcapi.post("products/categories", categ_data).json()
+                    print("CATEGORY", category)
+                    categ_id.woo_category_id = category['id']
                     categ_data['id'] = category['id']
+                    print("CATEGORY",  categ_data['id'])
                 # get product images
                 print("CATEGORY ID", categ_data['id'])
                 images = []
@@ -148,7 +155,7 @@ class InhertProductTemplate(models.Model):
                     }
                     images.append(image)
                 print("PRODUCT IMAGES",len(product.product_image_ids)>0 )
-                if len(product.product_image_ids)>0:
+                if len(product.product_image_ids) > 0:
                     for image in product.product_image_ids:
                         print("IMAGE", image.image)
                         res = upload_image(image.image, image.name, product.channel_id.woo_host, product.channel_id.woo_username, product.channel_id.woo_password)
@@ -159,10 +166,11 @@ class InhertProductTemplate(models.Model):
                         }
                         images.append(image)
                     data['images'] = images
+                    print("IMAGES", images)
 
                 data = {
                     'name': product.name,
-                    'description': product.description,
+                    'description': product.description if product.description else ' ',
                     'sku': product.default_code if product.default_code is not None else None,
                     'price': str(product.lst_price),
                     'regular_price': str(product.lst_price),
@@ -184,6 +192,7 @@ class InhertProductTemplate(models.Model):
                 if woo_id == 0:
                     woo_product = wcapi.post("products", data).json()
                     print("create product ", woo_product)
+                    print("WOO PRODUCT", woo_product)
                     woo_id = woo_product['id']
                     product.write({'woo_product_id': woo_id})
 
