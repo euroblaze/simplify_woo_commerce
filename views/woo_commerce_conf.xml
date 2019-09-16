@@ -1,18 +1,5 @@
 <odoo>
     <data>
-
-        <record id="woo_product_template_view" model="ir.actions.server">
-            <field name="name">Export to Woo Commerce</field>
-            <field name="model_id" ref="model_product_template"/>
-            <field name="binding_model_id" ref="model_product_template"/>
-            <field name="state">code</field>
-            <field name="code">
-                if records:
-                action = records.export_woo_products(records)
-            </field>
-        </record>
-
-
     <record id="channel_pos_settings_woo_commerce_connector_inherit" model="ir.ui.view">
       <field name="name">channel_pos_settings_woo_commerce_connector_inherit</field>
     		<field name="model">channel.pos.settings</field>
@@ -139,7 +126,7 @@
                          <group>
                             <label for="woo_interval_number" string="Execute Every"/>
                             <div>
-                                <field name="woo_interval_number" class="oe_inline"/>
+                                <field name="woo_interval_number" class="oe_inline" style="margin-right:5px"/>
                                 <field name="woo_interval_type" class="oe_inline"/>
                             </div>
                             <field name="woo_nextcall"/>
@@ -148,6 +135,16 @@
                     </page>
         		</xpath>
         	</field>
+    </record>
+
+        <record id="cron_import_woo_data" model="ir.cron">
+            <field name="name">Import Woo Data</field>
+            <field name="model_id" ref="model_channel_pos_settings"/>
+            <field name="state">code</field>
+            <field name="code">model.import_woo_data()</field>
+            <field name='interval_number'>1</field>
+            <field name="numbercall">0</field>
+            <field name="active">True</field>
     </record>
   </data>
 </odoo>

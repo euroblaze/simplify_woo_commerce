@@ -9,6 +9,8 @@ import base64
 _logger = logging.getLogger(__name__)
 
 
+
+
 class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     _inherit = 'channel.pos.settings'
 
@@ -26,6 +28,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     # Field for products
     woo_products = fields.One2many('product.template', 'channel_id', string="Products",
                                    domain=[('woo_product_id', '!=', None)])
+    # woo_crone = fields.One2many('ir.cron', 'woo_channel_id',
+    #                                  string="IR Cron", )
+
     # Field for Sale Orders
     # woo_orders = fields.One2many('sale.order', 'channel_id', string="Sale Orders")
 
@@ -57,6 +62,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                    help="Next planned execution date for this job.")
     woo_cron_user_id = fields.Many2one('res.users')
 
+
+
     # Method for connection with Woo Commerce
     def create_woo_commerce_object(self):
         wcapi = API(
@@ -85,6 +92,55 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             self.update({'log_lines': logs})
         except Exception as e:
             _logger.error(e)
+
+    # Overwrite create function to call the crone
+    @api.model
+    def create(self, vals):
+        print("CREATE")
+        print(vals)
+        res = super(InheritChannelPosSettingsWooCommerceConnector, self).create(vals)
+        if 'woo_interval_number' and 'woo_interval_type' and 'woo_nextcall' in vals:
+            print("*******************************")
+            print(vals)
+            print(vals.keys())
+            if vals['woo_interval_number'] != 0:
+                print("------------------")
+                cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+                if not cron:
+                    cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+                print("CRON ", cron)
+                cron.write({'interval_number': vals['woo_interval_number'],
+                                'interval_type': vals['woo_interval_type'], 'nextcall': vals['woo_nextcall']})
+        return res
+
+    def write(self,vals):
+        res = super(InheritChannelPosSettingsWooCommerceConnector, self).write(vals)
+        print("WRITE")
+        print(vals)
+        print('woo_interval_number' and 'woo_interval_type' and 'woo_nextcall' in vals)
+        if 'woo_interval_number' and 'woo_interval_type' and 'woo_nextcall' in vals:
+            print("======================")
+            if vals.get('woo_interval_number') != 0:
+                cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+                if not cron:
+                    cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+
+                print("CRON ", cron)
+                cron.write({'interval_number': vals['woo_interval_number'],
+                            'interval_type': vals['woo_interval_type'], 'nextcall': vals['woo_nextcall']})
+
+        return res
+
+    # Method for automaion import data from Woo Commerce
+    @api.model
+    def import_woo_data(self):
+        print("SELF", self)
+        # self.import_woo_taxes()
+        # self.import_woo_customers()
+        # self.import_woo_products()
+        # self.import_woo_orders()
+        # cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+        # cron.write({'numbercall': cron.numbercall + 1})
 
     # On button click import all taxes from Woo into woo.taxes table
     @api.one
@@ -493,39 +549,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         'parent_id': parent_category.id
                     })
 
-    def get_current_product_price(self, woo_product):
-        sale_price = woo_product['sale_price']  # Sale price in woo
-        sales_price = woo_product['regular_price']  # Current product in Odoo
-
-        if sale_price == '':  # check if the product is on sale
-            print("THE PRODUCT IS NOT ON SALE!!!")
-            sales_price = woo_product['regular_price']
-
-        else:  # if the product is on sale
-            date_now = str(datetime.datetime.now()).split(".")  # to igonre miliseconds
-            date_now = datetime.datetime.strptime(date_now[0], '%Y-%m-%d %H:%M:%S')
-            date_on_sale_from = woo_product['date_on_sale_from']
-
-            # check if date_on_sale_from is scheduled
-            if date_on_sale_from is not None:
-                date_on_sale_from = date_on_sale_from.split("T")
-                date_on_sale_from = date_on_sale_from[0] + ' ' + date_on_sale_from[1]
-                date_on_sale_from = datetime.datetime.strptime(date_on_sale_from, '%Y-%m-%d %H:%M:%S')
-
-                date_on_sale_to = woo_product['date_on_sale_to']
-                if date_on_sale_to is not None:  # check if date_on_sale_to is scheduled
-                    date_on_sale_to = woo_product['date_on_sale_to'].split("T")
-                    date_on_sale_to = date_on_sale_to[0] + ' ' + date_on_sale_to[1]
-                    date_on_sale_to = datetime.datetime.strptime(date_on_sale_to, '%Y-%m-%d %H:%M:%S')
-
-                    if date_on_sale_from <= date_now and date_now <= date_on_sale_to:
-                        print('PRODUCT ON SALE!!!')
-                        sales_price = sale_price
-                else:  # if date_on_sale_to is not scheduled
-                    if date_on_sale_from <= date_now:
-                        sales_price = sale_price
-        return sales_price
-
     def create_woo_attributes_and_values(self, woo_variant):
         attr_id = ''
         list_vals = []
@@ -839,13 +862,11 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'active': True if woo_product['status'] == 'publish' else False,
                 # active da zavisi od Woo status or woo catalog_visibility
                 'description': woo_product['description'],
-                'woo_regular_price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,  # regular price
+                'woo_regular_price': float(woo_product['regular_price'].replace(",", ".")) if woo_product['regular_price'] != '' else 0,  # regular price
                 'woo_sale_price': float(woo_product['sale_price'].replace(",", ".")) if woo_product['sale_price'] != '' else None,  # price on sale
                 'price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,
                 'default_code': str(sku),
                 'woo_sku': sku,
-
-
             }
             location = self.env['stock.location'].search(['&', ('name', '=', 'Stock'), ('location_id', '!=', None)], limit=1)
             qty_available = float(woo_product['stock_quantity']) if woo_product['stock_quantity'] != None else 0

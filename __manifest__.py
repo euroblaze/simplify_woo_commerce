@@ -27,6 +27,7 @@
         'views/woo_taxes.xml',
         'views/woo_commerce_conf.xml',
         'views/templates.xml',
+        'views/product_template.xml'
     ],
     # only loaded in demonstration mode
     'demo': [

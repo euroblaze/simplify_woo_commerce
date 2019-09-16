@@ -45,9 +45,16 @@ class InhertProductTemplate(models.Model):
 
     # woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', description="Woo Channel instance ID")
     woo_product_id = fields.Integer(string='Woo Product ID')
-    woo_sale_price = fields.Float(string='Sale price', description="Price when the product is on sale")
-    woo_regular_price = fields.Float(string='Regular price', description="Regular price of the product")
+    woo_sale_price = fields.Float(string='Woo Sale price', description="Price when the product is on sale")
+    woo_regular_price = fields.Float(string='Woo Regular price', description="Regular price of the product")
     woo_sku = fields.Char("Woo SKU")
+
+    def _compute_pos(self):
+        if self.channel_id:
+            self.pos = self.channel_id.pos
+            print("POS", self.pos)
+
+    pos = fields.Integer(string='Channel pos', compute=_compute_pos)
 
 
     @api.depends('product_variant_ids', 'product_variant_ids.default_code')
@@ -100,8 +107,7 @@ class InhertProductTemplate(models.Model):
             print(int(product.channel_id.pos) == 3)
             if int(product.channel_id.pos) == 3:
                 woo_id = product.woo_product_id
-
-
+                data ={}
                 wcapi = product.channel_id.create_woo_commerce_object()
                 print("API", wcapi.__dict__)
 
@@ -128,9 +134,11 @@ class InhertProductTemplate(models.Model):
                     category = wcapi.post("products/catgeories",categ_data).json()
                     categ_data['id'] = category['id']
                 # get product images
+                print("CATEGORY ID", categ_data['id'])
                 images = []
                 image_medium = product.image_medium  # binary data of product image medium
-                if image_medium is not None:
+                print('Image MEDIUM', image_medium)
+                if image_medium:
                     res = upload_image(image_medium, product.name, product.channel_id.woo_host,
                                        product.channel_id.woo_username, product.channel_id.woo_password)
                     image = {
@@ -139,21 +147,23 @@ class InhertProductTemplate(models.Model):
                         'name': res['title']
                     }
                     images.append(image)
-
-                for image in product.product_image_ids:
-                    print("IMAGE", image.image)
-                    res = upload_image(image.image, image.name, product.channel_id.woo_host, product.channel_id.woo_username, product.channel_id.woo_password)
-                    image = {
-                        'id': res['attachment_id'],
-                        'src': res['link'],
-                        'name': res['title']
-                    }
-                    images.append(image)
+                print("PRODUCT IMAGES",len(product.product_image_ids)>0 )
+                if len(product.product_image_ids)>0:
+                    for image in product.product_image_ids:
+                        print("IMAGE", image.image)
+                        res = upload_image(image.image, image.name, product.channel_id.woo_host, product.channel_id.woo_username, product.channel_id.woo_password)
+                        image = {
+                            'id': res['attachment_id'],
+                            'src': res['link'],
+                            'name': res['title']
+                        }
+                        images.append(image)
+                    data['images'] = images
 
                 data = {
                     'name': product.name,
                     'description': product.description,
-                    'sku': product.default_code,
+                    'sku': product.default_code if product.default_code is not None else None,
                     'price': str(product.lst_price),
                     'regular_price': str(product.lst_price),
                     'sale_price': str(product.woo_sale_price),
@@ -165,12 +175,13 @@ class InhertProductTemplate(models.Model):
                             'id': categ_data['id']
                         }
                     ],
-                    'images': images
+
                 }
 
 
                 # If the product exist in Odoo but not in Woo, create the product in Woo
-                if woo_id is None:
+                print("WOO ID ",woo_id)
+                if woo_id == 0:
                     woo_product = wcapi.post("products", data).json()
                     print("create product ", woo_product)
                     woo_id = woo_product['id']
