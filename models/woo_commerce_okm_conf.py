@@ -496,20 +496,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # If yes delete the customer from Odoo too.
         self.check_deleted_customers(woo_customers_list)
 
-    def import_woo_categories(self):
+    def import_woo_categories(self, woo_categories):
         # INPUT - json format of Woo categories
         # OUTPUT - importing this categories into Odoo product.category
-        wcapi = self.create_woo_commerce_object()
-        woo_categories = []
-        # get all woo categories
-        page = 1
-        while True:
-            categories_per_page = wcapi.get('products/categories', params={"per_page": 100, "page": page}).json()
-            page += 1
-            if not categories_per_page:
-                break
-            woo_categories += categories_per_page
-
         woo_categories.sort(key=lambda s: s['parent'])
         # print(woo_categories)
         for category in woo_categories:
@@ -765,12 +754,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                         'default_code': sku,
                                         'active': status,
                                         'type': 'product',
-                                        'price': float(woo_variant['price']),
-                                        'lst_price': float(woo_variant['price']),
-                                        'list_price': float(woo_variant['price']),
+                                        'price': float(woo_variant['price']) if woo_variant['price'] else 0,
+                                        'lst_price': float(woo_variant['price']) if woo_variant['price'] else 0,
+                                        'list_price': float(woo_variant['price']) if woo_variant['price'] else 0,
                                         'price_extra': abs(
-                                            float(woo_product['price']) - float(woo_variant['price'])),
-                                        'woo_price': float(woo_variant['price']),
+                                            float(woo_product['price']) - float(woo_variant['price'])) if woo_product['price'] and woo_product['price'] else 0,
+                                        'woo_price': float(woo_variant['price']) if woo_variant['price'] else 0,
                                         'woo_channel_id': self.id})
                     # print('Variant list price', odoo_variant.lst_price)
                     image_medium = woo_variant['image']
@@ -823,7 +812,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 break
             woo_products += products_per_page
 
-        wcapi = self.create_woo_commerce_object()
         woo_categories = []
         # get all woo categories
         page = 1
@@ -838,7 +826,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # before product import, import all categories
         # print("=========================== CATEGORIES =================================================")
-        self.import_woo_categories()
+        self.import_woo_categories(woo_categories)
 
         # print("=========================== PRODUCTS =================================================")
         attribute_obj = self.env['product.attribute']
@@ -859,6 +847,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # print("Master product exist: ", master_product_exists)
 
             product_categories = woo_product['categories']
+            print("product categories", product_categories)
             woo_category_id = product_categories[0]['id']
             # parse the product basic info
             # print("Product price",  woo_product['price'].replace(",", "."))

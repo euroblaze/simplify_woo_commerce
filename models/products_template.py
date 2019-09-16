@@ -186,6 +186,7 @@ class InhertProductTemplate(models.Model):
                     ],
 
                 }
+                print("DATA", data)
 
 
                 # If the product exist in Odoo but not in Woo, create the product in Woo
