@@ -172,7 +172,7 @@ class InhertProductTemplate(models.Model):
                 data = {
                     'name': product.name,
                     'description': product.description if product.description else ' ',
-                    'sku': product.default_code if product.default_code is not None else None,
+                    'sku': product.default_code if product.default_code is not None else "",
                     'price': str(product.lst_price),
                     'regular_price': str(product.lst_price),
                     'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else ' ',
