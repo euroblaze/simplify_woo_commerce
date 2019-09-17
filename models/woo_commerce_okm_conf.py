@@ -44,7 +44,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                              ('wc/v3', 'WC version 3.5.x or later'),
                                              ('wc/v2', 'WC version 3.0.x or later'),
                                              ('vc/v1', 'WC version 2.6.x or later'),
-                                             ], string='Woo Commerce Version', default='wc/v3')
+                                             ], string='Woo Commerce Version', default='wc/v3', required="True")
     # Information fields for updates
     woo_last_update_product = fields.Datetime(string='Last product update', readonly=True)
     woo_last_update_order = fields.Datetime(string='Last order update', readonly=True)
@@ -62,29 +62,26 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                    help="Next planned execution date for this job.")
     woo_cron_user_id = fields.Many2one('res.users')
 
-
-
+    def check_woo_url(self0, woo_host):
+        if "http" in woo_host:
+            return woo_host
+        else:
+            return "http://"+woo_host
     # Method for connection with Woo Commerce
     def create_woo_commerce_object(self):
         wcapi = API(
-            url=self.woo_host,
+            url=self.check_woo_url(self.woo_host),
             consumer_key=self.woo_consumer_key,
             consumer_secret=self.woo_consumer_secret,
             wp_api="wp-json",
             version=self.woo_commerce_version if self.woo_commerce_version != '-1' else 'wc/v3',
-            timeout=100
-        )
-        print(wcapi)
+            timeout=100)
         return wcapi
-
     @api.one
     def woo_test_connection(self):
         print("Connection Successful")
-        try:
-            # check the woo_commerce connection
+        try:# check the woo_commerce connection
             self.create_woo_commerce_object()
-            # print(self.create_date)
-            # print(type(self.create_date))
             logs = []
             logs.append(
                 (0, 0, {'date': str(datetime.datetime.now()), 'message': 'Connection Successful!! WC object created.',
@@ -92,7 +89,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             self.update({'log_lines': logs})
         except Exception as e:
             _logger.error(e)
-
     # Overwrite create function to call the crone
     @api.model
     def create(self, vals):
@@ -887,8 +883,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             if master_product_exists:
                 # print("Master product exist")
                 master_id = master_product_exists.id
-                # print(master_product_exists.taxes_id)
-                # print(master_id)
                 # if master exist check if clone exist
                 clone_exist = self.env['product.template'].search_count([('default_code', '=', sku),
                                                                          ('master_id', '=', master_id),
@@ -1045,10 +1039,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 print("ODOO TAX", odoo_tax)
                 odoo_taxes +=odoo_tax
             print('ODOO TAXES', odoo_taxes)
-
-
-
-
             order_line_info = {
                 'product_id': product_id.id,
                 'product_uom_qty': line['quantity'],
@@ -1123,20 +1113,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
         page = 1
         woo_orders = []
-        # get all Woo orders
-        while True:
+        while True: # get all Woo orders
             orders_per_page = wcapi.get('orders', params={"per_page": 100, "page": page}).json()
             page += 1
             if not orders_per_page:
                 break
             woo_orders += orders_per_page
-
         woo_order_numbers = []
         for order in woo_orders:
             print(order)
             woo_order_number = order['number']
             woo_order_key = order['order_key']
-
             woo_order_numbers.append(woo_order_number)
             billing_info = {}
             shipping_info = {}
@@ -1149,7 +1136,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             personal_customer_info = {}
             partner_id = 0
             if order['customer_id']:
-                customer = wcapi.get("customers/%s" %(order['customer_id'])).json()
+                customer = wcapi.get("customers/%s" % (order['customer_id'])).json()
                 role = customer['role']
                 if role != 'customer':
                     personal_customer_info = billing_info
@@ -1165,12 +1152,10 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 print("PERSONAL INFO", personal_customer_info)
                 personal_customer_info['type'] = 'contact'
                 partner_id = self.env['res.partner'].create(personal_customer_info)
-                print("partner ID", partner_id)
+
 
             billing_info['parent_id'] = partner_id.id
             shipping_info['parent_id'] = partner_id.id
-
-
             date_order = order['date_created'].split("T")
             date_order = date_order[0] + " " + date_order[1]
             date_order = datetime.datetime.strptime(date_order, '%Y-%m-%d %H:%M:%S')
@@ -1183,7 +1168,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'state': 'draft',
                 'channel_id': self.id,
                 'date_order': date_order
-
             }
             print("SALE ORDER INFO", sale_order_info)
 
@@ -1191,8 +1175,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                 ('woo_order_number', '=', woo_order_number),
                                                                 ('woo_order_key', '=', woo_order_key)])
             order_lines = order['line_items']
-
-
 
             if order_exists != 0:
                 # order exist => check if the order need to be updated
@@ -1216,6 +1198,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     billing_record = 0
                     # if billing info does not exist -> create
                     if billing_record_exist == 0:
+                        print("BILLING RECORD ==============",billing_record_exist)
                         billing_record = self.env['res.partner'].create(billing_info)
                     # else if billing info exist -> update in case of same changes
                     else:
@@ -1223,6 +1206,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                          ('woo_channel_id', '=', self.id),
                                                                          ('parent_id', '=', partner_id.id),
                                                                          ('type', '=', 'invoice')])
+                        print("Billing info", billing_info)
                         billing_record.write(billing_info)
 
                     # check if shipping info for the customer exist
@@ -1256,7 +1240,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     order_lines = self.create_woo_order_lines(order_lines, sale_order.id, True)
                     # add order lines
                     sale_order.write({'order_line': [(6, 0, order_lines)]})
-
             else:  # create order
                 print("Create order")
                 # check if billing info for the customer exist
@@ -1268,6 +1251,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 billing_record = 0
                 # if billing info does not exist -> create
                 if billing_record_exist == 0:
+                    print("Billing record exisst ============", billing_record_exist)
                     billing_record = self.env['res.partner'].create(billing_info)
                 # else if billing info exist -> update in case of same changes
                 else:
@@ -1276,7 +1260,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                      ('parent_id', '=', partner_id.id),
                                                                      ('type', '=', 'invoice')])
                     billing_record.write(billing_info)
-
                 # check if shipping info for the customer exist
                 shipping_record_exist = self.env['res.partner'].search_count(
                                                                     [('woo_customer_id', '=', order['customer_id']),
@@ -1316,13 +1299,3 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         self.import_woo_products()
         self.import_woo_customers()
         self.import_woo_orders()
-
-
-
-
-
-
-
-
-
-

@@ -6,7 +6,6 @@
     		<field name="inherit_id" ref="simplify_okm_core.view_channels_form"/>
     		<field name="arch" type="xml">
         		<xpath expr="//page[@name='logs']" position='before'>
-
                     <page name="WooCommerce API Configuration" string="API Configuration" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
                         <group>
                             <group>
@@ -15,9 +14,9 @@
                                 <field name="woo_password"  attrs="{'required': [('pos', '==', '3')]}" password="True"/>
                             </group>
                             <group>
-                                <field name="woo_consumer_key"  attrs="{'required': [('pos', '==', '3')]}"/>
-                                <field name="woo_consumer_secret"  attrs="{'required': [('pos', '==', '3')]}"/>
-                                <field name="woo_commerce_version"  attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_consumer_key" attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_consumer_secret" attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_commerce_version" attrs="{'required': [('pos', '==', '3')]}"/>
                             </group>
                         </group>
                         <group>
@@ -25,7 +24,6 @@
                         </group>
                     </page>
                     <page name="WooCommerceTaxes" string="Taxes" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
-
                         <group>
                             <group>
                                 <button name="import_woo_taxes" type="object" string="Import Taxes" class="btn-primary"/>
