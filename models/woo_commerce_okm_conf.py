@@ -667,7 +667,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
     def get_woo_product_variants(self, woo_product, wcapi, odoo_product):
         stock_quant = self.env['stock.quant']
-        sku = woo_product['sku']  # Stock keeping unit, should be unique - something like isbn on the books
+         # Stock keeping unit, should be unique - something like isbn on the books
         product_product = self.env['product.product']
 
         if woo_product.get('variations') != []:
@@ -679,6 +679,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # lista od listi so vrednosti na varijantite
             woo_variant_vals = []
             for variation in variations:
+                sku = variation['sku'] if variation['sku'] else woo_product['sku']
                 print('Variant ', variation)
                 # if the product has variants
                 # Atributi i vrednosti za site varijanti na proizvodot. primer Boja i site vrednosti za boja. Golemina i site golemini.

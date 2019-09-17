@@ -48,9 +48,6 @@ class InhertProductTemplate(models.Model):
     woo_sale_price = fields.Float(string='Woo Sale price', description="Price when the product is on sale")
     woo_regular_price = fields.Float(string='Woo Regular price', description="Regular price of the product")
     woo_sku = fields.Char("Woo SKU")
-    default_code = fields.Char(
-        'Internal Reference', compute='_compute_default_code',
-        inverse='_set_default_code', store=True, required=True)
 
     def _compute_pos(self):
         if self.channel_id:
@@ -180,7 +177,7 @@ class InhertProductTemplate(models.Model):
                     'regular_price': str(product.lst_price),
                     'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else ' ',
                     'tax_class': taxes_class[0] if len(taxes_class) > 0 else None,
-                    'stock.quantity': product.qty_available,
+                    'stock_quantity': product.qty_available,
                     'weight': str(product.weight),
                     'categories': [
                         {
@@ -222,7 +219,7 @@ class InhertProductTemplate(models.Model):
                                 'price': str(variant.lst_price),
                                 'regular_price': str(variant.lst_price),
                                 'tax_class': taxes_class[0] if len(taxes_class) > 0 else None,
-                                'stock.quantity': variant.qty_available,
+                                'stock_quantity': variant.qty_available,
                                 'weight': str(variant.weight),
                             }
                         image = {}
