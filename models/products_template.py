@@ -50,7 +50,7 @@ class InhertProductTemplate(models.Model):
     woo_sku = fields.Char("Woo SKU")
     default_code = fields.Char(
         'Internal Reference', compute='_compute_default_code',
-        inverse='_set_default_code', store=True, required = True)
+        inverse='_set_default_code', store=True, required=True)
 
     def _compute_pos(self):
         if self.channel_id:

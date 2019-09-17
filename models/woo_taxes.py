@@ -88,7 +88,8 @@ class ChannelWooTaxes(models.Model):
 
 
 
-
+class InhertStockQuant(models.Model):
+    _inherit = 'stock.quant'
 
 
 
