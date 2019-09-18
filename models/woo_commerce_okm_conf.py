@@ -270,6 +270,10 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "type": "invoice",
                 "woo_channel_id": self.id
             }
+            # if woo_customer['billing']['phone']:
+            #     personal_info['phone'] = woo_customer['billing']['phone']
+            # if woo_customer['billing']['phone']
+
 
 
         # shipping information
@@ -329,7 +333,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         woo_customers_list = []
 
         for woo_customer in woo_customers:
-            # print(woo_customer)
+            print("Customer", woo_customer)
             woo_customers_list.append(woo_customer['id'])
 
             # first parse the customer info from woo
