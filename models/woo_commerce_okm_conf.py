@@ -271,6 +271,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "woo_channel_id": self.id
             }
 
+
         # shipping information
         shipping_info = {}
         if woo_customer.get('shipping'):
