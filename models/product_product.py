@@ -33,33 +33,6 @@ class WooChannelProductProductInherit(models.Model):
                     list_price = product.list_price
                 product.lst_price = list_price + product.price_extra
 
-    # @api.model_create_multi
-    # def create(self, vals_list):
-    #     print("*********PRODUCT CREATE SELF", self)
-    #     print("*********PRODUCT CREATE vals_list", vals_list)
-    #
-    #     products = super(WooChannelProductProductInherit, self.with_context(create_product_product=True)).create(vals_list)
-    #     # for product, vals in pycompat.izip(products, vals_list):
-    #     #     print("*********PRODUCT PRODUCT CREATE", product.)
-    #     #     print("*********PRODUCT PRODUCT VALS", vals)
-    #
-    #     return products
-    #
-    # @api.multi
-    # def write(self, values):
-    #     ''' Store the standard price change in order to be able to retrieve the cost of a product for a given date'''
-    #     res = super(WooChannelProductProductInherit, self).write(values)
-    #
-    #     print("*********PRODUCT WRITE SELF", self.lst_price)
-    #     print("*********PRODUCT WRITE vals_list", values)
-    #     # print("Have lst price", values.get('lst_price'))
-    #     # if values.get('lst_price'):
-    #     #     self.lst_price = values.get('lst_price')
-    #     #     print("--------------SELF LIST PRICE---------", self.lst_price)
-    #
-    #     return res
-
-
 
 
 
