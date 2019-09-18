@@ -35,7 +35,6 @@ def upload_image(image_data, image_name, host, username, password):
         data['bits'] = compat.xmlrpc_client.Binary(img.read())
 
     res = client.call(media.UploadFile(data))
-
     return res
 
 
@@ -168,15 +167,16 @@ class InhertProductTemplate(models.Model):
                         images.append(image)
                     data['images'] = images
                     print("IMAGES", images)
+                print(product.default_code)
 
                 data = {
                     'name': product.name,
                     'description': product.description if product.description else ' ',
-                    'sku': product.default_code if product.default_code is not None else "",
+                    'sku':product.default_code if product.default_code else ' ',
                     'price': str(product.lst_price),
                     'regular_price': str(product.lst_price),
                     'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else ' ',
-                    'tax_class': taxes_class[0] if len(taxes_class) > 0 else None,
+                    'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
                     'stock_quantity': product.qty_available,
                     'weight': str(product.weight),
                     'categories': [
