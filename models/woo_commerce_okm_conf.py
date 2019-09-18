@@ -76,6 +76,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             wp_api="wp-json",
             version=self.woo_commerce_version if self.woo_commerce_version != '-1' else 'wc/v3',
             timeout=100)
+        print(self.check_woo_url(self.woo_host))
         return wcapi
     @api.one
     def woo_test_connection(self):
@@ -933,10 +934,14 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                     [('product_id', '=', variant_exist.id), ('location_id', '=', location.id)])
                                 # print("STOCK=======", stock)
                                 stock.write({'quantity': float(qty_available)})
+                                print("STOCK",stock.quantity)
                             else:
                                 stock = stock_quant._update_available_quantity(variant_exist, location, float(qty_available))
+                                print("STOCK2",stock)
+
                 else:
                     # if clone does not exist => create woo clone
+                    print("CREATE CLONE")
                     woo_product_info.update({
                         'woo_product_id': woo_product['id'],
                         'channel_id': self.id,
