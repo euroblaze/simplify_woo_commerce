@@ -23,8 +23,8 @@
 
             <xpath expr="//page[@name='general_information']//field[@name='list_price']" position='after'>
                 <field name="pos" invisible="1"/>
-                <field name="woo_regular_price" attrs="{'required': [('pos', '==', 3)], 'ivisible': [('pos', '!=', 3)]}"/>
-                <field name="woo_sale_price" attrs="{'required': [('pos', '==', 3)], 'ivisible': [('pos', '!=', 3)]}"/>
+                <field name="woo_regular_price" attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
+                <field name="woo_sale_price" attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
             </xpath>
         </field>
         </record>
