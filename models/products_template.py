@@ -195,6 +195,7 @@ class InhertProductTemplate(models.Model):
                     variants = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
                     variations = []
                     variant_data = {}
+                    data['type'] = 'variable'
                     for variant in variants:
                         print("VARIANT WOO ID", variant.woo_variant_id )
                         print("variant weight", str(variant.weight))
