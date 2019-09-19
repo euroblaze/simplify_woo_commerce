@@ -156,6 +156,7 @@ class InhertProductTemplate(models.Model):
                     data['images'] = images
                     print("IMAGES", images)
                 print(product.default_code)
+                print("EXPORT PRODUCT STOCK ", product.qty_available)
 
                 data = {
                     'name': product.name,

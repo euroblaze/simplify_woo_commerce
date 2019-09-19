@@ -831,6 +831,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,
                 'default_code': str(sku),
                 'woo_sku': sku,
+                'categ_id': self.find_category(woo_category_id)
             }
             location = self.env['stock.location'].search(['&', ('name', '=', 'Stock'), ('location_id', '!=', None)], limit=1)
             qty_available = float(woo_product['stock_quantity']) if woo_product['stock_quantity'] != None else 0
