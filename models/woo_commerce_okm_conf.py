@@ -815,7 +815,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_sale_price = 0
             if woo_product['price'] == '' and woo_product['sale_price'] == '':
                 woo_sale_price = 0
-            else:
+            elif woo_product['sale_price'] != '':
                 woo_sale_price = float(woo_product['sale_price'].replace(",", "."))
 
             print("STOCK", woo_product['stock_quantity'])
@@ -843,7 +843,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
             # if master product exist create/update the clone product for Woo Commerce
             if master_product_exists:
-                # print("Master product exist")
+                print("Master product exist")
                 master_id = master_product_exists.id
                 # if master exist check if clone exist
                 clone_exist = self.env['product.template'].search_count([('default_code', '=', sku),
@@ -851,6 +851,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                          ('channel_id', '=', self.id)])
 
                 if clone_exist:
+                    print("CLONE EXIST")
                     # if clone exist => update clone information
                     woo_clone = self.env['product.template'].search([('default_code', '=', sku),
                                                                      ('master_id', '=', master_id),
@@ -867,6 +868,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     print("variant exist ", len(variant_exist))
 
                     if update:
+                        print("Update clone")
                         # update product images (if exist)
                         clone_woo_id = woo_clone.id
                         aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
@@ -922,18 +924,19 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     print("variant exist ", len(variant_exist))
                     if len(variant_exist) == 1:
                         stock_exist = stock_quant.search_count(
-                            [('product_id', '=', variant_exist.id), ('location_id', '=', location.id)])
+                            [('product_id', '=', woo_clone.id), ('location_id', '=', location.id)])
                         if stock_exist != 0:
                             stock = stock_quant.search(
-                                [('product_id', '=', variant_exist.id), ('location_id', '=', location.id)])
+                                [('product_id', '=', woo_clone.id), ('location_id', '=', location.id)])
                             # print("STOCK=======", stock)
                             stock.write({'quantity': float(qty_available)})
                         else:
-                            stock = stock_quant._update_available_quantity(variant_exist, location,
+                            stock = stock_quant._update_available_quantity(woo_clone, location,
                                                                            float(qty_available))
 
             # master product does not exist -> create master product and clone
             else:
+                print("Create master producy")
                 # create master product
                 master_product = self.env['product.template'].create(woo_product_info)
                 master_id = master_product.id
@@ -968,6 +971,20 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 self.get_woo_product_variants(woo_product, wcapi, woo_clone)
                 woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
                 woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
+
+                variant_exist = self.env['product.product'].search([('product_tmpl_id', '=', woo_clone.id)])
+                print("variant exist ", len(variant_exist))
+                if len(variant_exist) == 1:
+                    stock_exist = stock_quant.search_count(
+                        [('product_id', '=', woo_clone.id), ('location_id', '=', location.id)])
+                    if stock_exist != 0:
+                        stock = stock_quant.search(
+                            [('product_id', '=', woo_clone.id), ('location_id', '=', location.id)])
+                        # print("STOCK=======", stock)
+                        stock.write({'quantity': float(qty_available)})
+                    else:
+                        stock = stock_quant._update_available_quantity(woo_clone, location,
+                                                                       float(qty_available))
 
         # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
         self.check_deleted_products(woo_product_list)
