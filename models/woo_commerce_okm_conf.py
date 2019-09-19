@@ -262,11 +262,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "type": "invoice",
                 "woo_channel_id": self.id
             }
-            # if woo_customer['billing']['phone']:
-            #     personal_info['phone'] = woo_customer['billing']['phone']
-            # if woo_customer['billing']['phone']
-
-
+            if woo_customer['billing']['phone']:
+                print("CUSTOMER HAS PHONE")
+                personal_info['phone'] = woo_customer['billing']['phone']
 
         # shipping information
         shipping_info = {}
