@@ -158,7 +158,7 @@ class InhertProductTemplate(models.Model):
                 print(product.default_code)
                 print("EXPORT PRODUCT STOCK ", product.qty_available)
 
-                data = {
+                data.update({
                     'name': product.name,
                     'description': product.description if product.description else ' ',
                     'sku':product.default_code if product.default_code else ' ',
@@ -174,7 +174,7 @@ class InhertProductTemplate(models.Model):
                         }
                     ],
 
-                }
+                })
                 print("DATA", data)
 
 
@@ -195,9 +195,6 @@ class InhertProductTemplate(models.Model):
                     variants = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
                     variations = []
                     variant_data = {}
-
-
-
                     for variant in variants:
                         print("VARIANT WOO ID", variant.woo_variant_id )
                         print("variant weight", str(variant.weight))
@@ -234,7 +231,6 @@ class InhertProductTemplate(models.Model):
                         variant_data['attributes'] = attributes
 
                         # Add woo ID if exist -> update variant
-
                         if variant.woo_variant_id:
                             variant_data['id'] = variant.woo_variant_id
                             print("Update variant", wcapi.put("products/%s/variations/%s" % (woo_id, variant.woo_variant_id), variant_data).json())
@@ -246,14 +242,9 @@ class InhertProductTemplate(models.Model):
                             print("Create variant", var)
                             variant_data['id'] = var['id']
 
-
-
-
                         variations.append(variant_data['id'])
                         # create/update variant and then get the variant id
                     data['variations'] = variations
-
-
                 print("Update product", wcapi.put('products/%s'% (woo_id), data).json())
 
 
