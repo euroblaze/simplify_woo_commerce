@@ -658,8 +658,10 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             all_attrs_and_vals = {}
             # lista od listi so vrednosti na varijantite
             woo_variant_vals = []
+            variants_sku = []
             for variation in variations:
                 sku = variation['sku'] if variation['sku'] else woo_product['sku']
+                variants_sku.append(sku)
                 print('Variant ', variation)
                 # if the product has variants
                 # Atributi i vrednosti za site varijanti na proizvodot. primer Boja i site vrednosti za boja. Golemina i site golemini.
@@ -704,6 +706,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 [('product_tmpl_id', '=', odoo_product.id)])
             location = self.env['stock.location'].search([('name', '=', 'Stock'),
                                                           ('location_id', '!=', None)], limit=1)
+            i =0
 
             for odoo_variant in corresponding_product_variants:
 
@@ -720,7 +723,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     woo_category_id = woo_product['categories'][0]['id']
                     print("PRODUCT category", woo_category_id)
                     odoo_variant.write({'woo_variant_id': woo_variant['id'],
-                                        'default_code': sku,
+                                        'default_code': variants_sku[i],
                                         'active': status,
                                         'type': 'product',
                                         'price': float(woo_variant['price']) if woo_variant['price'] else 0,
@@ -748,6 +751,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         stock.write({'quantity': float(variant_stock)})
                     else:
                         stock = stock_quant._update_available_quantity(odoo_variant, location, float(variant_stock))
+                i += 1
 
     def find_category(self, woo_category_id):
         category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),

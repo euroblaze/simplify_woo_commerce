@@ -107,27 +107,40 @@ class InhertProductTemplate(models.Model):
                         if tax.odoo_tax in product.taxes_id:
                             taxes_class.append(tax.woo_tax.tax_class)
 
+
+
+
+
+                categories = []
                 print("Product category", product.categ_id)
                 categ_id = product.categ_id
-                categ_data = {
-                    'name': categ_id.name,
-                    'parent': categ_id.woo_category_id if categ_id.woo_category_id != None else None
-                }
-                print("CATEG DATA", categ_data)
-                if categ_id.woo_channel_id: # this category exist in Woo -> update the category
-                    print("Category exist in Woo")
-                    wcapi.put("products/categories/%s" %(categ_id.woo_category_id), categ_data)
-                    categ_data['id'] = categ_id.woo_category_id
+                parent_path = categ_id.parent_path.split("/")
 
-                else: # the category does not exist in Woo -> create the category in Woo
-                    print('Category does not exist in Woo')
-                    categ_id.write({'woo_channel_id': product.channel_id.id})
-                    print("CATEG ID", categ_id.woo_channel_id)
-                    category = wcapi.post("products/categories", categ_data).json()
-                    print("CATEGORY", category)
-                    categ_id.woo_category_id = category['id']
-                    categ_data['id'] = category['id']
-                    print("CATEGORY",  categ_data['id'])
+                for category in parent_path:
+                    if category != '':
+                        categ_data = {
+                            'name': categ_id.name,
+                        }
+                        if categ_id.woo_channel_id: # this category exist in Woo -> update the category
+                            print("Category exist in Woo")
+                            woo_categ = wcapi.put("products/categories/%s" %(categ_id.woo_category_id), categ_data)
+                            categ_data['id'] = categ_id.woo_category_id
+
+
+                        else: # the category does not exist in Woo -> create the category in Woo
+                            print('Category does not exist in Woo')
+                            categ_id.write({'woo_channel_id': product.channel_id.id})
+                            print("CATEG ID", categ_id.woo_channel_id)
+                            category = wcapi.post("products/categories", categ_data).json()
+                            print("CATEGORY", category)
+                            categ_id.woo_category_id = category['id']
+                            categ_data['id'] = category['id']
+                            print("CATEGORY",  categ_data['id'])
+
+
+
+
+
                 # get product images
                 print("CATEGORY ID", categ_data['id'])
                 images = []
