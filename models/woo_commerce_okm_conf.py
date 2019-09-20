@@ -720,7 +720,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     price_extra = 0
                     if woo_product['price'] and woo_variant['price']:
                         price_extra = abs(float(woo_product['price']) - float(woo_variant['price']))
-                    woo_category_id = woo_product['categories'][0]['id']
+                    woo_category_id = woo_product['categories'][-1]['id']
                     print("PRODUCT category", woo_category_id)
                     odoo_variant.write({'woo_variant_id': woo_variant['id'],
                                         'default_code': variants_sku[i],
@@ -867,7 +867,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     # if clone exist => update clone information
                     woo_clone = self.env['product.template'].search([('default_code', '=', sku),
                                                                      ('master_id', '=', master_id),
-                                                                     ('channel_id', '=', self.id)])
+                                                                     ('channel_id', '=', self.id)], limit=1)
                     # check if product need to be updated
                     woo_date_modified = woo_product['date_modified']
                     odoo_date_modified = woo_clone.write_date

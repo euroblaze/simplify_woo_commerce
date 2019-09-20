@@ -117,7 +117,11 @@ class InhertProductTemplate(models.Model):
                 parent_path = categ_id.parent_path.split("/")
 
                 for category in parent_path:
+
                     if category != '':
+                        print("************ category *************", category)
+                        categ_id = self.env['product.category'].search([('id', '=', category)])
+                        print("************ odo category **********", categ_id)
                         categ_data = {
                             'name': categ_id.name,
                         }
@@ -128,21 +132,35 @@ class InhertProductTemplate(models.Model):
 
 
                         else: # the category does not exist in Woo -> create the category in Woo
-                            print('Category does not exist in Woo')
-                            categ_id.write({'woo_channel_id': product.channel_id.id})
-                            print("CATEG ID", categ_id.woo_channel_id)
-                            category = wcapi.post("products/categories", categ_data).json()
-                            print("CATEGORY", category)
-                            categ_id.woo_category_id = category['id']
-                            categ_data['id'] = category['id']
-                            print("CATEGORY",  categ_data['id'])
+                            if categ_id.parent_id == None:
+                                print('Category does not exist in Woo')
+                                categ_id.write({'woo_channel_id': product.channel_id.id})
+                                print("CATEG ID", categ_id.woo_channel_id)
+                                category = wcapi.post("products/categories", categ_data).json()
+                                print("CATEGORY", category)
+                                categ_id.woo_category_id = category['id']
+                                categ_data['id'] = category['id']
+                                print("CATEGORY",  categ_data['id'])
+                            else:
+                                print('Category does not exist in Woo')
+                                categ_data['parent'] = categ_id.parent_id.woo_category_id
+                                categ_id.write({'woo_channel_id': product.channel_id.id})
+                                print("CATEG ID", categ_id.woo_channel_id)
+                                category = wcapi.post("products/categories", categ_data).json()
+                                print("CATEGORY", category)
+                                categ_id.woo_category_id = category['id']
+                                categ_data['id'] = category['id']
+                                print("CATEGORY", categ_data['id'])
 
 
+
+                        categories.append(categ_data)
+
+                print("CATEGORIES ********************", categories[-1])
 
 
 
                 # get product images
-                print("CATEGORY ID", categ_data['id'])
                 images = []
                 image_medium = product.image_medium  # binary data of product image medium
                 print('Image MEDIUM', image_medium)
@@ -181,11 +199,7 @@ class InhertProductTemplate(models.Model):
                     'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
                     'stock_quantity': product.qty_available,
                     'weight': str(product.weight),
-                    'categories': [
-                        {
-                            'id': categ_data['id']
-                        }
-                    ],
+                    'categories': [categories[-1]],
 
                 })
                 print("DATA", data)
