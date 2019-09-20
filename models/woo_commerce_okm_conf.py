@@ -765,6 +765,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             update = True
         return update
 
+    def remove_html_tags(self, text):
+        """Remove html tags from a string"""
+        import re
+        clean = re.compile('<.*?>')
+
+        return re.sub(clean, '', text)
+
     def import_woo_products(self):
         # print("Products import")
         wcapi = self.create_woo_commerce_object()  # connect to Woo
@@ -825,7 +832,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'type': 'product',
                 'active': True if woo_product['status'] == 'publish' else False,
                 # active da zavisi od Woo status or woo catalog_visibility
-                'description': woo_product['description'],
+                'description': self.remove_html_tags(woo_product['description']),
                 'woo_regular_price': float(woo_product['regular_price'].replace(",", ".")) if woo_product['regular_price'] != '' else 0,  # regular price
                 'woo_sale_price': woo_sale_price,  # price on sale
                 'price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,
