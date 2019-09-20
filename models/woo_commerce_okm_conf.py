@@ -91,7 +91,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         print("CREATE")
         print(vals)
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).create(vals)
-        if 'woo_interval_number' and 'woo_interval_type' and 'woo_nextcall' in vals:
+        if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
             print("*******************************")
             print(vals)
             print(vals.keys())
@@ -101,16 +101,14 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 if not cron:
                     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
                 print("CRON ", cron)
-                cron.write({'interval_number': vals['woo_interval_number'],
-                                'interval_type': vals['woo_interval_type'], 'nextcall': vals['woo_nextcall']})
+                cron.write({'interval_number': self.woo_interval_number,
+                            'interval_type': self.woo_interval_type, 'nextcall': self.woo_nextcall})
         return res
 
     def write(self,vals):
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).write(vals)
         print("WRITE")
-        print(vals)
-        print('woo_interval_number' and 'woo_interval_type' and 'woo_nextcall' in vals)
-        if 'woo_interval_number' and 'woo_interval_type' and 'woo_nextcall' in vals:
+        if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
             print("======================")
             if vals.get('woo_interval_number') != 0:
                 cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
@@ -118,21 +116,24 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
 
                 print("CRON ", cron)
-                cron.write({'interval_number': vals['woo_interval_number'],
-                            'interval_type': vals['woo_interval_type'], 'nextcall': vals['woo_nextcall']})
+                cron.write({'interval_number': self.woo_interval_number,
+                            'interval_type': self.woo_interval_type, 'nextcall': self.woo_nextcall})
 
         return res
 
     # Method for automaion import data from Woo Commerce
     @api.model
     def import_woo_data(self):
-        print("SELF", self)
-        self.import_woo_taxes()
-        self.import_woo_customers()
-        self.import_woo_products()
-        self.import_woo_orders()
-        cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
-        cron.write({'numbercall': cron.numbercall + 1})
+        print('Cron')
+        # woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
+        # for channel in woo_channels:
+        #     print("SELF", channel)
+        #     channel.import_woo_taxes()
+        #     channel.import_woo_customers()
+        #     channel.import_woo_products()
+        #     # channel.import_woo_orders()
+        #     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+        #     cron.write({'numbercall': cron.numbercall + 1})
 
     # On button click import all taxes from Woo into woo.taxes table
     @api.one
