@@ -1,15 +1,15 @@
 <odoo>
     <data>
-        <record id="woo_product_template_view" model="ir.actions.server">
-            <field name="name">Export to Woo Commerce</field>
-            <field name="model_id" ref="model_product_template"/>
-            <field name="binding_model_id" ref="model_product_template"/>
-            <field name="state">code</field>
-            <field name="code" >
-                if records:
-                action = records.export_woo_products(records)
-            </field>
-        </record>
+<!--        <record id="woo_product_template_view" model="ir.actions.server">-->
+<!--            <field name="name">Export to Woo Commerce</field>-->
+<!--            <field name="model_id" ref="model_product_template"/>-->
+<!--            <field name="binding_model_id" ref="model_product_template"/>-->
+<!--            <field name="state">code</field>-->
+<!--            <field name="code" >-->
+<!--                if records:-->
+<!--                action = records.export_woo_products(records)-->
+<!--            </field>-->
+<!--        </record>-->
 
 
         <record id="view_product_template_form_woo_inherited" model="ir.ui.view">
@@ -22,6 +22,11 @@
                 <field name="woo_regular_price" attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
                 <field name="woo_sale_price" attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
             </xpath>
+                <button name="action_update_quantity_on_hand" position="after">
+                    <button string="Export to Woo Commerce" name="export_woo_product" type="object" attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
+                </button>
+
+
         </field>
         </record>
     </data>

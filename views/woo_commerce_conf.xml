@@ -1,17 +1,19 @@
 <odoo>
     <data>
-    <record id="channel_pos_settings_woo_commerce_connector_inherit" model="ir.ui.view">
-      <field name="name">channel_pos_settings_woo_commerce_connector_inherit</field>
-    		<field name="model">channel.pos.settings</field>
-    		<field name="inherit_id" ref="simplify_okm_core.view_channels_form"/>
-    		<field name="arch" type="xml">
-        		<xpath expr="//page[@name='logs']" position='before'>
-                    <page name="WooCommerce API Configuration" string="API Configuration" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+        <record id="channel_pos_settings_woo_commerce_connector_inherit" model="ir.ui.view">
+            <field name="name">channel_pos_settings_woo_commerce_connector_inherit</field>
+            <field name="model">channel.pos.settings</field>
+            <field name="inherit_id" ref="simplify_okm_core.view_channels_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='logs']" position='before'>
+                    <page name="WooCommerce API Configuration" string="API Configuration" sequence="1"
+                          attrs="{'invisible': [('pos', '!=', '3')]}">
                         <group>
                             <group>
-                                <field name="woo_host"  attrs="{'required': [('pos', '==', '3')]}"/>
-                                <field name="woo_username"  attrs="{'required': [('pos', '==', '3')]}"/>
-                                <field name="woo_password"  attrs="{'required': [('pos', '==', '3')]}" password="True"/>
+                                <field name="woo_host" attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_username" attrs="{'required': [('pos', '==', '3')]}"/>
+                                <field name="woo_password" attrs="{'required': [('pos', '==', '3')]}" password="True"/>
+
                             </group>
                             <group>
                                 <field name="woo_consumer_key" attrs="{'required': [('pos', '==', '3')]}"/>
@@ -20,108 +22,122 @@
                             </group>
                         </group>
                         <group>
-                            <button name="woo_test_connection" type="object" string="Test Connection" class="btn-primary"/>
+                            <button name="woo_test_connection" type="object" string="Test Connection"
+                                    class="btn-primary" />
                         </group>
                     </page>
-                    <page name="WooCommerceTaxes" string="Taxes" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+                    <page name="WooCommerceTaxes" string="Taxes" sequence="1"
+                          attrs="{'invisible': [('pos', '!=', '3')]}">
                         <group>
                             <group>
-                                <button name="import_woo_taxes" type="object" string="Import Taxes" class="btn-primary"/>
-                                    <p>
-                                        <b>
+                                <button name="import_woo_taxes" type="object" string="Import Taxes"
+                                        class="btn-primary"/>
+                                <p>
+                                    <b>
                                         After completing the API Configuration,
-                                            the next step is to import the taxes from Woo Commerce and map them to the odoo taxes that you wish to be used.
-                                        </b>
-                                    </p>
+                                        the next step is to import the taxes from Woo Commerce and map them to the odoo
+                                        taxes that you wish to be used.
+                                    </b>
+                                </p>
                             </group>
                         </group>
                         <group>
                             <group>
-                                 <field name="woo_taxes_map" context="{'channel_id':id}">
-                                     <tree>
-                                         <field name="woo_tax" />
-                                         <field name="odoo_tax"/>
-                                     </tree>
-                                 </field>
+                                <field name="woo_taxes_map" context="{'channel_id':id}">
+                                    <tree>
+                                        <field name="woo_tax"/>
+                                        <field name="odoo_tax"/>
+                                    </tree>
+                                </field>
                             </group>
                         </group>
 
                     </page>
-                    <page name="Woo Commerce Customers" string="Customers" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+                    <page name="Woo Commerce Customers" string="Customers" sequence="1"
+                          attrs="{'invisible': [('pos', '!=', '3')]}">
                         <h3>
-                                Import Customers From Woo into Odoo
+                            Import Customers From Woo into Odoo
                         </h3>
-                        <group >
-                            <button name="import_woo_customers" type="object" string="Import Customers" class="btn-primary"/>
+                        <group>
+                            <button name="import_woo_customers" type="object" string="Import Customers"
+                                    class="btn-primary"/>
                             <p>
-                                 <b> After completing the API Configuration  and Taxes mapping  in the previous tab,
-                                     you can now press this button to import all the customers from Woo Commerce into Odoo.
-                                     This is normally a one-time action at the beginning of setting up this Woo Commerce channel.
-                                     Regular imports of customer records is managed by Scheduled Actions. However,
-                                     if you are missing Customer data from Odoo Contacts/CRM, feel free to use this button
-                                     to manually sync your Woo Commerce customers with those here.
-                                 </b>
+                                <b>After completing the API Configuration and Taxes mapping in the previous tab,
+                                    you can now press this button to import all the customers from Woo Commerce into
+                                    Odoo.
+                                    This is normally a one-time action at the beginning of setting up this Woo Commerce
+                                    channel.
+                                    Regular imports of customer records is managed by Scheduled Actions. However,
+                                    if you are missing Customer data from Odoo Contacts/CRM, feel free to use this
+                                    button
+                                    to manually sync your Woo Commerce customers with those here.
+                                </b>
                             </p>
                         </group>
                         <group>
 
-                                 <field name="woo_customers" context="{'channel_id':id}">
-                                     <tree>
-                                         <field name="name" />
-                                         <field name="woo_customer_id"/>
-                                         <field name="woo_channel_id"/>
-                                     </tree>
-                                 </field>
+                            <field name="woo_customers" context="{'channel_id':id}">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="woo_customer_id"/>
+                                    <field name="woo_channel_id"/>
+                                </tree>
+                            </field>
 
                         </group>
 
                     </page>
-                    <page name="Woo Commerce Products" string="Products" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
+                    <page name="Woo Commerce Products" string="Products" sequence="1"
+                          attrs="{'invisible': [('pos', '!=', '3')]}">
                         <h3>
-                                Import Products from Woo into Odoo
+                            Import Products from Woo into Odoo
                         </h3>
-                        <group >
-                            <button name="import_woo_products" type="object" string="Import Products" class="btn-primary"/>
+                        <group>
+                            <button name="import_woo_products" type="object" string="Import Products"
+                                    class="btn-primary"/>
                         </group>
-                          <group>
+                        <group>
 
-                                 <field name="woo_products" context="{'channel_id':id}">
-                                     <tree>
-                                         <field name="default_code" />
-                                         <field name="name" />
-                                         <field name="list_price"/>
-                                         <field name="categ_id"/>
-                                         <field name="type"/>
-                                         <field name="qty_available"/>
-                                     </tree>
-                                 </field>
-                            </group>
+                            <field name="woo_products" context="{'channel_id':id}">
+                                <tree>
+                                    <field name="default_code"/>
+                                    <field name="name"/>
+                                    <field name="list_price"/>
+                                    <field name="categ_id"/>
+                                    <field name="type"/>
+                                    <field name="qty_available"/>
+                                </tree>
+                            </field>
+                        </group>
 
                     </page>
-                     <page name="Woo Commerce Orders" string="Orders" sequence="1" attrs="{'invisible': [('pos', '!=', '3')]}">
-                         <h3>
-                                Import Orders from Woo into Odoo
-                         </h3>
-                         <group>
-                             <button name="import_woo_orders_on_clink" type="object" string="Import Orders" class="btn-primary"/>
-                         </group>
-                         <group>
-<!--                             <field name="woo_orders" >-->
-<!--                                 <tree>-->
-<!--                                     <field name="name"/>-->
-<!--                                     <field name="confirmation_date"/>-->
-<!--                                     <field name="commitment_date"/>-->
-<!--                                     <field name="expected_date"/>-->
-<!--                                     <field name="partner_id"/>-->
-<!--                                     <field name="user_id"/>-->
-<!--                                     <field name="amount_total"/>-->
-<!--                                     <field name="invoice_status"/>-->
-<!--                                 </tree>-->
-<!--                             </field>-->
-                         </group>
+                    <page name="Woo Commerce Orders" string="Orders" sequence="1"
+                          attrs="{'invisible': [('pos', '!=', '3')]}">
+                        <h3>
+                            Import Orders from Woo into Odoo
+                        </h3>
+                        <group>
+                            <button name="import_woo_orders_on_clink" type="object" string="Import Orders"
+                                    class="btn-primary"/>
+                        </group>
+                        <group>
+                            <!--                             <field name="woo_orders" >-->
+                            <!--                                 <tree>-->
+                            <!--                                     <field name="name"/>-->
+                            <!--                                     <field name="confirmation_date"/>-->
+                            <!--                                     <field name="commitment_date"/>-->
+                            <!--                                     <field name="expected_date"/>-->
+                            <!--                                     <field name="partner_id"/>-->
+                            <!--                                     <field name="user_id"/>-->
+                            <!--                                     <field name="amount_total"/>-->
+                            <!--                                     <field name="invoice_status"/>-->
+                            <!--                                 </tree>-->
+                            <!--                             </field>-->
+                        </group>
                     </page>
-                    <page name="Woo Commerce Scheduling" string="Scheduling" attrs="{'invisible': [('pos', '!=', '3')]}">
-                         <group>
+                    <page name="Woo Commerce Scheduling" string="Scheduling"
+                          attrs="{'invisible': [('pos', '!=', '3')]}">
+                        <group>
                             <label for="woo_interval_number" string="Execute Every"/>
                             <div>
                                 <field name="woo_interval_number" class="oe_inline" style="margin-right:5px"/>
@@ -131,9 +147,9 @@
                             <field name="woo_cron_user_id"/>
                         </group>
                     </page>
-        		</xpath>
-        	</field>
-    </record>
+                </xpath>
+            </field>
+        </record>
 
         <record id="cron_import_woo_data" model="ir.cron">
             <field name="name">Import Woo Data</field>
@@ -143,6 +159,6 @@
             <field name='interval_number'>1</field>
             <field name="numbercall">0</field>
             <field name="active">True</field>
-    </record>
-  </data>
+        </record>
+    </data>
 </odoo>

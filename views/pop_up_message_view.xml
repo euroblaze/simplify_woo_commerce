@@ -1,0 +1,18 @@
+<odoo>
+    <data>
+        <record id="woo_alert_window" model="ir.ui.view">
+            <field name="name">custom.pop.up.message.form</field>
+            <field name="model">custom.pop.up.message</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="arch" type="xml">
+                <form string="Information">
+                    <field name="message" readonly="1"/>
+                    <footer>
+                        <button string="Close" class="btn-default" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>
