@@ -19,7 +19,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'simplify_okm_core','sale_management','account','stock'],
+    'depends': ['base', 'simplify_okm_core', 'sale_management', 'account', 'stock'],
 
     # always loaded
     'data': [
@@ -27,7 +27,8 @@
         'views/woo_taxes.xml',
         'views/woo_commerce_conf.xml',
         'views/templates.xml',
-        'views/product_template.xml'
+        'views/product_template.xml',
+        'views/pop_up_message_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

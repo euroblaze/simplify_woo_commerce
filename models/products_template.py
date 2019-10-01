@@ -274,7 +274,7 @@ class InhertProductTemplate(models.Model):
                         # create/update variant and then get the variant id
                     data['variations'] = variations
                 print("Update product", wcapi.put('products/%s'% (woo_id), data).json())
-
+    
     def export_woo_product(self):
         product = self
         if int(product.channel_id.pos) == 3:
@@ -324,6 +324,7 @@ class InhertProductTemplate(models.Model):
                         else:
                             print('Category does not exist in Woo')
                             categ_data['parent'] = categ_id.parent_id.woo_category_id
+                            print("CATEG DATA", categ_data)
                             categ_id.write({'woo_channel_id': product.channel_id.id})
                             print("CATEG ID", categ_id.woo_channel_id)
                             category = wcapi.post("products/categories", categ_data).json()

@@ -73,49 +73,32 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         print(self.check_woo_url(self.woo_host))
         return wcapi
 
-    @api.one
     def woo_test_connection(self):
-        print("Connection Successful")
-        # try:# check the woo_commerce connection
         wcapi = self.create_woo_commerce_object()
         wcapi.get('taxes')
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
-        print(view_id)
-        if wcapi.get('taxes').status_code == 200:
-            res = {
-                'type': 'ir.actions.act_window',
-                'name': 'Information',
-                'res_model': 'custom.pop.up.message',
-                'view_type': 'form',
-                'view_mode': 'form',
-                # 'views': [(view_id, 'form')],
-                # 'view_id': view_id,
-                'target': 'new',
-                'context': {'default_message': 'Connection successful!!'},
-            }
-            return res
-        else:
-            res = {
-                'name': 'Information',
-                'view_type': 'form',
-                'view_mode': 'form',
-                # 'views': [(view_id, 'form')],
-                'res_model': 'custom.pop.up.message',
-                # 'view_id': view_id,
-                'type': 'ir.actions.act_window',
-                'target': 'new',
-                'context': {'default_message': 'Connection failure!!'},
-            }
-            return res
+        try:# check the woo_commerce connection
+            if wcapi.get('taxes').status_code == 200:
+                logs = []
+                logs.append(
+                    (0, 0, {'date': str(datetime.datetime.now()), 'message': 'Connection Successful!! WC object created.',
+                            'channel_id': self.id, 'type': 'CONFIG'}))
+                self.update({'log_lines': logs})
 
-        #     logs = []
-        #     logs.append(
-        #         (0, 0, {'date': str(datetime.datetime.now()), 'message': 'Connection Successful!! WC object created.',
-        #                 'channel_id': self.id, 'type': 'CONFIG'}))
-        #     self.update({'log_lines': logs})
-        #
-        # except Exception as e:
-        #     _logger.error(e)
+                return {
+                    'name': 'Information',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'views': [(view_id, 'form')],
+                    'res_model': 'custom.pop.up.message',
+                    'view_id': view_id,
+                    'type': 'ir.actions.act_window',
+                    'target': 'new',
+                    'context': {'default_message': 'Connection successful!!'},
+                }
+
+        except Exception as e:
+            _logger.error(e)
 
     # Overwrite create function to call the crone
     @api.model
