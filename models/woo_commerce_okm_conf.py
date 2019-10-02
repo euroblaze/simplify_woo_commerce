@@ -1156,6 +1156,14 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                  ('woo_channel_id', '=', self.id),
                                                                  ('parent_id', '=', None)])
             else:
+                if billing_info.get('message_follower_ids'):
+                    del billing_info['message_follower_ids']
+                if billing_info.get('image'):
+                    del billing_info['image']
+                if billing_info.get('image_medium'):
+                    del billing_info['image_medium']
+                if billing_info.get('image_small'):
+                    del billing_info['image_small']
                 personal_customer_info = billing_info
                 print("PERSONAL INFO", personal_customer_info)
                 personal_customer_info['type'] = 'contact'
