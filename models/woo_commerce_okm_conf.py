@@ -37,7 +37,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                              ('wc/v3', 'WC version 3.5.x or later'),
                                              ('wc/v2', 'WC version 3.0.x or later'),
                                              ('vc/v1', 'WC version 2.6.x or later'),
-                                             ], string='Woo Commerce Version', default='wc/v3', required="True")
+                                             ], string='Woo Commerce Version', default='wc/v3', required=True)
     # Information fields for updates
     woo_last_update_product = fields.Datetime(string='Last product update', readonly=True)
     woo_last_update_order = fields.Datetime(string='Last order update', readonly=True)
@@ -290,7 +290,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "name": woo_customer['shipping']['first_name'] + " " + woo_customer['shipping']['last_name'],
                 "company_name": woo_customer['shipping']['company'],
                 "street": woo_customer['shipping']['address_1'],
-                "street": woo_customer['shipping']['address_2'],
+                "street2": woo_customer['shipping']['address_2'],
                 "city": woo_customer['shipping']['city'],
                 "zip": woo_customer['shipping']['postcode'],
                 "country": self.get_country_id(woo_customer['shipping']['country']),
@@ -1135,11 +1135,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             billing_info = {}
             shipping_info = {}
             billing_info, shipping_info = self.get_billing_and_shipping_info_from_order(order)
+            print("============ BILLING INFO ", billing_info)
+            print("============ Shipping INFO", shipping_info)
             if billing_info.get('message_follower_ids'):
                 del billing_info['message_follower_ids']
             if shipping_info.get('message_follower_ids'):
                 del shipping_info['message_follower_ids']
-            print("Billing INFO", shipping_info)
             personal_customer_info = {}
             partner_id = 0
             if order['customer_id']:
@@ -1258,6 +1259,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # if billing info does not exist -> create
                 if billing_record_exist == 0:
                     print("Billing record exisst ============", billing_record_exist)
+                    print("BILLING INFO", billing_info)
+                    if billing_info.get('message_follower_ids'):
+                        del billing_info['message_follower_ids']
+                    if billing_info.get('image'):
+                        del billing_info['image']
+                    if billing_info.get('image_medium'):
+                        del billing_info['image_medium']
+                    if billing_info.get('image_small'):
+                        del billing_info['image_small']
+
+
                     billing_record = self.env['res.partner'].create(billing_info)
                 # else if billing info exist -> update in case of same changes
                 else:
@@ -1275,6 +1287,14 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 shipping_record = 0
                 # if shipping info does not exist -> create
                 if shipping_record_exist == 0:
+                    if shipping_info.get('message_follower_ids'):
+                        del shipping_info['message_follower_ids']
+                    if shipping_info.get('image'):
+                        del shipping_info['image']
+                    if shipping_info.get('image_medium'):
+                        del shipping_info['image_medium']
+                    if shipping_info.get('image_small'):
+                        del shipping_info['image_small']
                     shipping_record = self.env['res.partner'].create(shipping_info)
                 # else if shipping info exist -> update in case of same changes
                 else:

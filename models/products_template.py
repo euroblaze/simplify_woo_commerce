@@ -362,8 +362,8 @@ class InhertProductTemplate(models.Model):
                         'name': res['title']
                     }
                     images.append(image)
-                data['images'] = images
-                print("IMAGES", images)
+            data['images'] = images
+            print("IMAGES", images)
             print(product.default_code)
             print("EXPORT PRODUCT STOCK ", product.qty_available)
 
