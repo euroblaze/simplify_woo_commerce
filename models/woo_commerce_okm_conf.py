@@ -110,7 +110,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         print(vals)
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).create(vals)
         if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
-            self.woo_nextcall = datetime.datetime.now()
             print("*******************************")
             print(vals)
             print(vals.keys())
