@@ -149,19 +149,19 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     @api.model
     def import_woo_data(self):
         print('Cron')
-        woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
-        for channel in woo_channels:
-            print("SELF", channel)
-            print("IMPORT TAXES")
-            channel.import_woo_taxes()
-            print("IMPORT CUSTOMERS")
-            channel.import_woo_customers()
-            print("IMPORT PRODUCTS")
-            channel.import_woo_products()
-            print("IMPORT ORDERS")
-            channel.import_woo_orders()
-            cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
-            cron.write({'numbercall': cron.numbercall + 1})
+        # woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
+        # for channel in woo_channels:
+        #     print("SELF", channel)
+        #     print("IMPORT TAXES")
+        #     channel.import_woo_taxes()
+        #     print("IMPORT CUSTOMERS")
+        #     channel.import_woo_customers()
+        #     print("IMPORT PRODUCTS")
+        #     channel.import_woo_products()
+        #     print("IMPORT ORDERS")
+        #     channel.import_woo_orders()
+        #     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+        #     cron.write({'numbercall': cron.numbercall + 1})
 
     # On button click import all taxes from Woo into woo.taxes table
     @api.one
