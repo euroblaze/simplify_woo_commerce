@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from psycopg2._psycopg import IntegrityError
+
 from odoo import models, fields, api
 from woocommerce import API
 import datetime
@@ -77,12 +79,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         wcapi = self.create_woo_commerce_object()
         wcapi.get('taxes')
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
-        try:# check the woo_commerce connection
+        try:  # check the woo_commerce connection
             if wcapi.get('taxes').status_code == 200:
                 logs = []
                 logs.append(
-                    (0, 0, {'date': str(datetime.datetime.now()), 'message': 'Connection Successful!! WC object created.',
-                            'channel_id': self.id, 'type': 'CONFIG'}))
+                    (0, 0,
+                     {'date': str(datetime.datetime.now()), 'message': 'Connection Successful!! WC object created.',
+                      'channel_id': self.id, 'type': 'CONFIG'}))
                 self.update({'log_lines': logs})
 
                 return {
@@ -140,15 +143,19 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     @api.model
     def import_woo_data(self):
         print('Cron')
-        # woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
-        # for channel in woo_channels:
-        #     print("SELF", channel)
-        #     channel.import_woo_taxes()
-        #     channel.import_woo_customers()
-        #     channel.import_woo_products()
-        #     # channel.import_woo_orders()
-        #     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
-        #     cron.write({'numbercall': cron.numbercall + 1})
+        woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
+        for channel in woo_channels:
+            print("SELF", channel)
+            print("IMPORT TAXES")
+            channel.import_woo_taxes()
+            print("IMPORT CUSTOMERS")
+            channel.import_woo_customers()
+            print("IMPORT PRODUCTS")
+            channel.import_woo_products()
+            print("IMPORT ORDERS")
+            channel.import_woo_orders()
+            cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+            cron.write({'numbercall': cron.numbercall + 1})
 
     # On button click import all taxes from Woo into woo.taxes table
     @api.one
@@ -229,17 +236,26 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
     def check_deleted_customers(self, woo_customers_list):
         odoo_customers = self.env['res.partner'].search([('woo_channel_id', '=', self.id)])
+
         for customer in odoo_customers:
             if customer.woo_customer_id not in woo_customers_list:
                 # self.env['res.partner'].search(
                 #     [('woo_customer_id', '=', customer.woo_customer_id), ('woo_channel_id', '=', self.id)]).unlink()
-                customer.unlink()
-                # log customer deleted
-                logs = []
-                logs.append(
-                    (0, 0, {'date': str(self.create_date), 'message': 'Woo customer ' + str(id) + ' was deleted',
-                            'channel_id': self.id, 'type': 'Delete customer'}))
-                self.update({'log_lines': logs})
+                try:
+                    customer.unlink()
+                    # log customer deleted
+                    logs = []
+                    logs.append(
+                        (0, 0, {'date': str(self.create_date), 'message': 'Woo customer ' + str(id) + ' was deleted',
+                                'channel_id': self.id, 'type': 'Delete customer'}))
+                    self.update({'log_lines': logs})
+                except IntegrityError as e:
+                    _logger.error(e)
+                    pass
+                    # continue
+                    # print("CONDITION ", isinstance(e, IntegrityError))
+                    # if isinstance(e, IntegrityError):
+                    #     continue
 
     def get_country_id(self, country_code):
         country_id = self.env['res.country'].search([('code', '=', country_code)]).id
@@ -497,7 +513,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # After one or more importing check if there is some deleted customer in WooCommerce
         # If yes delete the customer from Odoo too.
-        self.check_deleted_customers(woo_customers_list)
+        # self.check_deleted_customers(woo_customers_list)
 
     def import_woo_categories(self, woo_categories):
         # INPUT - json format of Woo categories
@@ -877,7 +893,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                          ('master_id', '=', master_id),
                                                                          ('channel_id', '=', self.id)])
 
-                if clone_exist !=0 :
+                if clone_exist != 0:
                     print("CLONE EXIST")
                     # if clone exist => update clone information
                     woo_clone = self.env['product.template'].search([('default_code', '=', sku),
@@ -1276,7 +1292,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         del billing_info['image_medium']
                     if billing_info.get('image_small'):
                         del billing_info['image_small']
-
 
                     billing_record = self.env['res.partner'].create(billing_info)
                 # else if billing info exist -> update in case of same changes
