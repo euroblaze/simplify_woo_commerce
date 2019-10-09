@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import models, woo_commerce_okm_conf, woo_taxes, res_partner, product_category, products_template, product_image, \
-    product_product, sale_order, product_attribute, pop_up_message
+from . import models
+from . import woo_commerce_okm_conf
+from . import woo_taxes
+from . import res_partner
+from . import product_category
+from . import products_template
+from . import product_image
+from . import product_product
+from . import sale_order
+from . import product_attribute
+from . import pop_up_message

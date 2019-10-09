@@ -21,7 +21,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers",
                                     domain=[('parent_id', '=', None)])
     # Field for categories
-    woo_categories = fields.One2many('product.category', 'woo_channel_id',
+    woo_categories = fields.One2many('product.category', 'channel_id',
                                      string="Product categories", )
     # Field for products
     woo_products = fields.One2many('product.template', 'channel_id', string="Products",
@@ -507,22 +507,22 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         for category in woo_categories:
             # print(category)
             duplicate_category = self.env['product.category'].search_count(
-                [('woo_category_id', '=', category['id']), ('woo_channel_id', '=', self.id)])
+                [('woo_category_id', '=', category['id']), ('channel_id', '=', self.id)])
             # print('DUPLICATE CATEGORY', duplicate_category)
             if duplicate_category != 0:
                 odoo_category = self.env['product.category'].search(
-                    [('woo_category_id', '=', category['id']), ('woo_channel_id', '=', self.id)])
+                    [('woo_category_id', '=', category['id']), ('channel_id', '=', self.id)])
                 # print('ODOO CATEGORY', odoo_category)
                 odoo_category.write({
                     'woo_parent_id': category['parent'],
                     'name': category['name'],
-                    'woo_channel_id': self.id,
+                    'channel_id': self.id,
                 })
                 woo_parent = odoo_category['woo_parent_id']
                 # print("WOO PARENT", woo_parent)
                 if woo_parent != 0:
                     parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
-                                                                           ('woo_channel_id', '=', self.id)
+                                                                           ('channel_id', '=', self.id)
                                                                            ],
                                                                           limit=1)
 
@@ -537,13 +537,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     # 'parent_id' : category['parent'],
                     'woo_parent_id': category['parent'],
                     'name': category['name'],
-                    'woo_channel_id': self.id,
+                    'channel_id': self.id,
                 })
                 woo_parent = odoo_category['woo_parent_id']
                 # print("WOO PARENT", woo_parent)
                 if woo_parent != 0:
                     parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
-                                                                           ('woo_channel_id', '=', self.id)
+                                                                           ('channel_id', '=', self.id)
                                                                            ],
                                                                           limit=1)
 
@@ -767,7 +767,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
     def find_category(self, woo_category_id):
         category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),
-                                                        ('woo_channel_id', '=', self.id)])
+                                                        ('channel_id', '=', self.id)])
         return category.id
 
     def check_woo_update(self, woo_date_modified, odoo_date_modified):
@@ -877,7 +877,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                          ('master_id', '=', master_id),
                                                                          ('channel_id', '=', self.id)])
 
-                if clone_exist:
+                if clone_exist !=0 :
                     print("CLONE EXIST")
                     # if clone exist => update clone information
                     woo_clone = self.env['product.template'].search([('default_code', '=', sku),

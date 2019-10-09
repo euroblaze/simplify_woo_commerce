@@ -238,7 +238,7 @@ from odoo import models, fields, api
 #         }
 
 #10. Set Automation settings (Woo->Odoo)
-    #Create cron for periodical  synchronization depending on the timestamps chosen in the Automation tab on the channel
+    #Create cron for periodical  synchronization depending on the timestamps chosen in the Scheduling tab on the channel
      def auto_update_woo():
             update products
             update customers

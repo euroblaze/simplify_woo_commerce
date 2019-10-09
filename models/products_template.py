@@ -301,11 +301,11 @@ class InhertProductTemplate(models.Model):
                 if category != '':
                     print("************ category *************", category)
                     categ_id = self.env['product.category'].search([('id', '=', category)])
-                    print("************ odo category **********", categ_id)
+                    print("************ odoo category **********", categ_id)
                     categ_data = {
                         'name': categ_id.name,
                     }
-                    if categ_id.woo_channel_id:  # this category exist in Woo -> update the category
+                    if categ_id.woo_category_id:  # this category exist in Woo -> update the category
                         print("Category exist in Woo")
                         woo_categ = wcapi.put("products/categories/%s" % (categ_id.woo_category_id), categ_data)
                         categ_data['id'] = categ_id.woo_category_id
@@ -313,8 +313,8 @@ class InhertProductTemplate(models.Model):
 
                     else:  # the category does not exist in Woo -> create the category in Woo
                         if categ_id.parent_id == None:
-                            print('Category does not exist in Woo')
-                            categ_id.write({'woo_channel_id': product.channel_id.id})
+                            print('Category does not exist in woo and does not have parent')
+                            categ_id.write({'channel_id': product.channel_id.id})
                             print("CATEG ID", categ_id.woo_channel_id)
                             category = wcapi.post("products/categories", categ_data).json()
                             print("CATEGORY", category)
@@ -325,8 +325,8 @@ class InhertProductTemplate(models.Model):
                             print('Category does not exist in Woo')
                             categ_data['parent'] = categ_id.parent_id.woo_category_id
                             print("CATEG DATA", categ_data)
-                            categ_id.write({'woo_channel_id': product.channel_id.id})
-                            print("CATEG ID", categ_id.woo_channel_id)
+                            categ_id.write({'channel_id': product.channel_id.id})
+                            print("CATEG ID", categ_id.channel_id)
                             category = wcapi.post("products/categories", categ_data).json()
                             print("CATEGORY", category)
                             categ_id.woo_category_id = category['id']
