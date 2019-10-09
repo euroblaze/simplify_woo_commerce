@@ -110,6 +110,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         print(vals)
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).create(vals)
         if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
+            self.woo_nextcall = datetime.datetime.now()
             print("*******************************")
             print(vals)
             print(vals.keys())
@@ -127,6 +128,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).write(vals)
         print("WRITE")
         if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
+            print('NEXT CALL', self.woo_nextcall)
+            print('TIME NOW', datetime.datetime.now())
+            # self.woo_nextcall = fields.datetime.now()
             print("======================")
             if vals.get('woo_interval_number') != 0:
                 cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
@@ -138,6 +142,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                             'interval_type': self.woo_interval_type, 'nextcall': self.woo_nextcall})
 
         return res
+
+
 
     # Method for automaion import data from Woo Commerce
     @api.model
@@ -238,10 +244,16 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         odoo_customers = self.env['res.partner'].search([('woo_channel_id', '=', self.id)])
 
         for customer in odoo_customers:
-            if customer.woo_customer_id not in woo_customers_list:
-                # self.env['res.partner'].search(
-                #     [('woo_customer_id', '=', customer.woo_customer_id), ('woo_channel_id', '=', self.id)]).unlink()
-                try:
+            try:
+                customer_has_orders = self.env['sale.order'].search_count(
+                    ['|', ('partner_id', '=', customer.id), ('partner_invoice_id', '=', customer.id),
+                     ('partner_shipping_id', '=', customer.id)])
+                print(customer_has_orders)
+                print(customer.name)
+                if customer.woo_customer_id not in woo_customers_list and (customer_has_orders == 0):
+                    # self.env['res.partner'].search(
+                    #     [('woo_customer_id', '=', customer.woo_customer_id), ('woo_channel_id', '=', self.id)]).unlink()
+
                     customer.unlink()
                     # log customer deleted
                     logs = []
@@ -249,13 +261,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         (0, 0, {'date': str(self.create_date), 'message': 'Woo customer ' + str(id) + ' was deleted',
                                 'channel_id': self.id, 'type': 'Delete customer'}))
                     self.update({'log_lines': logs})
-                except IntegrityError as e:
-                    _logger.error(e)
-                    pass
-                    # continue
-                    # print("CONDITION ", isinstance(e, IntegrityError))
-                    # if isinstance(e, IntegrityError):
-                    #     continue
+            except IntegrityError as e:
+                raise (e)
+                # continue
+                # print("CONDITION ", isinstance(e, IntegrityError))
+                # if isinstance(e, IntegrityError):
+                #     continue
 
     def get_country_id(self, country_code):
         country_id = self.env['res.country'].search([('code', '=', country_code)]).id
