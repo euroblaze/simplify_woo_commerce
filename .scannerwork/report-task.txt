@@ -1,6 +1,0 @@
-projectKey=simplify_woo_commerce
-serverUrl=https://sonarqube.simplify-erp.com
-serverVersion=6.7.7.38951
-dashboardUrl=https://sonarqube.simplify-erp.com/dashboard/index/simplify_woo_commerce
-ceTaskId=AW2lHsiSTvh5nlgegVDw
-ceTaskUrl=https://sonarqube.simplify-erp.com/api/ce/task?id=AW2lHsiSTvh5nlgegVDw

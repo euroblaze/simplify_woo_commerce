@@ -111,6 +111,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).create(vals)
         if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
             print("*******************************")
+            vals['woo_nextcall'] = fields.Datetime.now()
             print(vals)
             print(vals.keys())
             if vals['woo_interval_number'] != 0:
@@ -119,14 +120,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 if not cron:
                     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
                 print("CRON ", cron)
-                cron.write({'interval_number': self.woo_interval_number,
-                            'interval_type': self.woo_interval_type, 'nextcall': self.woo_nextcall})
+                cron.write({'interval_number': vals['woo_interval_number'] if vals.get(
+                    'woo_interval_number') else self.woo_interval_number,
+                            'interval_type': vals['woo_interval_type'] if vals.get(
+                                'woo_interval_type') else self.woo_interval_type, 'nextcall': fields.Datetime.now()})
         return res
 
     def write(self, vals):
-        res = super(InheritChannelPosSettingsWooCommerceConnector, self).write(vals)
         print("WRITE")
         if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
+            vals['woo_nextcall'] = fields.Datetime.now()
+            print(vals)
             print('NEXT CALL', self.woo_nextcall)
             print('TIME NOW', datetime.datetime.now())
             # self.woo_nextcall = fields.datetime.now()
@@ -135,14 +139,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
                 if not cron:
                     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
-
                 print("CRON ", cron)
-                cron.write({'interval_number': self.woo_interval_number,
-                            'interval_type': self.woo_interval_type, 'nextcall': self.woo_nextcall})
+                cron.write({'interval_number': vals['woo_interval_number'] if vals.get('woo_interval_number') else self.woo_interval_number,
+                            'interval_type': vals['woo_interval_type'] if vals.get('woo_interval_type') else self.woo_interval_type, 'nextcall': fields.Datetime.now()})
 
+        res = super(InheritChannelPosSettingsWooCommerceConnector, self).write(vals)
         return res
-
-
 
     # Method for automaion import data from Woo Commerce
     @api.model
