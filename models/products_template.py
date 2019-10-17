@@ -391,8 +391,9 @@ class InhertProductTemplate(models.Model):
                 woo_product = wcapi.post("products", data).json()
                 print("create product ", woo_product)
                 print("WOO PRODUCT", woo_product)
-                woo_id = woo_product['id']
-                product.write({'woo_product_id': woo_id})
+                if woo_product.get('id'):
+                    woo_id = woo_product['id']
+                    product.write({'woo_product_id': woo_id})
 
             # If woo id exist update the product in Woo
             # if the product has variant update/create the variants too
@@ -477,8 +478,10 @@ class InhertProductTemplate(models.Model):
                         print("Variant Data", variant_data)
                         var = wcapi.post("products/%s/variations" % (woo_id), variant_data).json()
                         print("Create variant", var)
-                        variant_data['id'] = var['id']
-                    variations.append(variant_data['id'])
+                        if var.get('id'):
+                            variant_data['id'] = var['id']
+                    if var.get('id'):
+                        variations.append(variant_data['id'])
                     # create/update variant and then get the variant id
                 data['attributes'] = product_attributes
                 data['default_attributes'] = product_attributes
