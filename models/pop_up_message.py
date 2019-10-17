@@ -6,3 +6,4 @@ class CustomPopUpMessage(models.TransientModel):
 
     message = fields.Char(string='Info message')
 
+

@@ -279,7 +279,9 @@ class InhertProductTemplate(models.Model):
         product = self
         if int(product.channel_id.pos) == 3:
 
+
             woo_id = product.woo_product_id
+            # data = {'manage_stock': 'true'}
             data = {}
             wcapi = product.channel_id.create_woo_commerce_object()
             print("API", wcapi.__dict__)
@@ -375,6 +377,7 @@ class InhertProductTemplate(models.Model):
                 'regular_price': str(product.woo_regular_price) if product.woo_regular_price != 0.0 else str(product.list_price),
                 'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else ' ',
                 'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
+                'manage_stock': 'true',
                 'stock_quantity': product.qty_available,
                 'weight': str(product.weight),
                 'categories': [categories[-1]],
@@ -465,6 +468,20 @@ class InhertProductTemplate(models.Model):
                     # create/update variant and then get the variant id
                 data['variations'] = variations
             print("Update product", wcapi.put('products/%s' % (woo_id), data).json())
+            view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
+            message = 'Product successfully exported to Woo Commerce!'
+            return {
+                'name': 'Information',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'views': [(view_id, 'form')],
+                'res_model': 'custom.pop.up.message',
+                'view_id': view_id,
+                'type': 'ir.actions.act_window',
+                'target': 'new',
+                'context': {'default_message': message},
+            }
+
 
 
 

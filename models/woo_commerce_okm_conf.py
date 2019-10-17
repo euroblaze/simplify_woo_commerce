@@ -165,11 +165,11 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         #     cron.write({'numbercall': cron.numbercall + 1})
 
     # On button click import all taxes from Woo into woo.taxes table
-    @api.one
     def import_woo_taxes(self):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
         page = 1
         woo_taxes = []
+        imported_taxes = 0
         # get all Woo taxes
         while True:
             taxes_per_page = wcapi.get('taxes', params={"per_page": 100, "page": page}).json()
@@ -214,6 +214,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                        'channel_id': self.id,
                                                        'tax_class': tax_class})
                     if is_created:
+                        imported_taxes += 1
                         # print("tax created")
                         logs = []
                         logs.append(
@@ -240,6 +241,19 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         self.update({'log_lines': logs})
                 except Exception as e:
                     _logger.error(e)
+        view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
+        message = 'Successfully were imported ' + str(imported_taxes) + ' taxes from your Woo Coommerce shop into Odoo'
+        return {
+            'name': 'Information',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'res_model': 'custom.pop.up.message',
+            'view_id': view_id,
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'context': {'default_message': message},
+        }
 
     def check_deleted_customers(self, woo_customers_list):
         odoo_customers = self.env['res.partner'].search([('woo_channel_id', '=', self.id)])
@@ -354,6 +368,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
         page = 1
         woo_customers = []
+        imported_customers = 0
+        updated_customers = 0
         # get all Woo orders
         while True:
             customers_per_page = wcapi.get('customers', params={"per_page": 100, "page": page}).json()
@@ -390,6 +406,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     update = False
                 else:
                     update = self.is_customer_updated(woo_id, self.id, woo_date_modified)
+                    updated_customers += 1
 
                 # get the master record ID
                 parent = res_partner.search([('woo_customer_id', '=', woo_id),
@@ -483,6 +500,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # create master contact with type contact
                 try:
                     customer_create = res_partner.create(personal_info)
+                    imported_customers += 1
                     # print("Parent customer created ")
                     # log creation
                     if customer_create:
@@ -526,6 +544,19 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # After one or more importing check if there is some deleted customer in WooCommerce
         # If yes delete the customer from Odoo too.
         # self.check_deleted_customers(woo_customers_list)
+        view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
+        message = 'Successfully were imported ' + str(imported_customers) + ' customers from your Woo Coommerce shop into Odoo. ' + str(updated_customers) + ' customers are updated.'
+        return {
+            'name': 'Information',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'res_model': 'custom.pop.up.message',
+            'view_id': view_id,
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'context': {'default_message': message},
+        }
 
     def import_woo_categories(self, woo_categories):
         # INPUT - json format of Woo categories
@@ -589,6 +620,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # get all attributes from the product variant
         attributes = woo_variant['attributes']
+        print("Attributes", attributes)
         for attribute in attributes:
             attr_id = ''
             list_vals = []
@@ -821,6 +853,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
         page = 1
         woo_products = []
+        imported_products = 0
+        updated_products = 0
         # get all Woo products
         while True:
             products_per_page = wcapi.get('products', params={"per_page": 100, "page": page}).json()
@@ -850,7 +884,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         stock_quant = self.env['stock.quant']
 
         for woo_product in woo_products:
-            print(woo_product)
+            print("PRODUCT", woo_product)
             aRelValues = {}
             woo_id = woo_product['id']
             woo_product_list.append(woo_id)
@@ -923,6 +957,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     print("variant exist ", len(variant_exist))
 
                     if update:
+                        updated_products += 1
                         print("Update clone")
                         # update product images (if exist)
                         clone_woo_id = woo_clone.id
@@ -954,6 +989,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                 print("STOCK2", stock)
 
                 else:
+                    imported_products += 1
                     # if clone does not exist => create woo clone
                     print("CREATE CLONE")
                     woo_product_info.update({
@@ -992,7 +1028,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
             # master product does not exist -> create master product and clone
             else:
-                print("Create master producy")
+                print("Create master product")
                 # create master product
                 master_product = self.env['product.template'].create(woo_product_info)
                 master_id = master_product.id
@@ -1018,6 +1054,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # print("DICT", woo_product_info)
                 woo_clone = self.env['product.template'].create(woo_product_info)
                 clone_woo_id = woo_clone.id
+                imported_products += 1
 
                 # set images to the clone if the product has images
                 aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
@@ -1044,6 +1081,21 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
         self.check_deleted_products(woo_product_list)
+        view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
+        message = 'Successfully were imported ' + str(
+            imported_products) + ' products from your Woo Coommerce shop into Odoo. ' + str(
+            updated_products) + ' products are updated.'
+        return {
+            'name': 'Information',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'res_model': 'custom.pop.up.message',
+            'view_id': view_id,
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'context': {'default_message': message},
+        }
 
     def create_woo_order_lines(self, order_lines, sale_order_id, update):
         order_line_ids = []
@@ -1148,6 +1200,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         wcapi = self.create_woo_commerce_object()  # connect to Woo
         page = 1
         woo_orders = []
+        imported_orders = 0
+        updated_orders = 0
         while True:  # get all Woo orders
             orders_per_page = wcapi.get('orders', params={"per_page": 100, "page": page}).json()
             page += 1
@@ -1231,6 +1285,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     update = self.check_woo_update(order['date_modified'], sale_order.write_date)
 
                 if update:
+                    updated_orders += 1
                     # if the order was updated in Woo -> Update the order in Odoo
                     # check if billing info for the customer exist
                     billing_record_exist = self.env['res.partner'].search_count(
@@ -1284,6 +1339,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     # add order lines
                     sale_order.write({'order_line': [(6, 0, order_lines)]})
             else:  # create order
+                imported_orders += 1
                 print("Create order")
                 # check if billing info for the customer exist
                 billing_record_exist = self.env['res.partner'].search_count(
@@ -1360,3 +1416,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         self.import_woo_products()
         self.import_woo_customers()
         self.import_woo_orders()
+        view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
+        message = 'Orders successfully imported!'
+        return {
+            'name': 'Information',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'res_model': 'custom.pop.up.message',
+            'view_id': view_id,
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'context': {'default_message': message},
+        }
+
