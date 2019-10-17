@@ -18,7 +18,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     pos = fields.Selection(selection_add=[('3', 'Woo Commerce')])
 
     # Field for tax mapping
-    woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Taxes")
+    woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Tax map")
     # Field for Customers
     woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers",
                                     domain=[('parent_id', '=', None)])
