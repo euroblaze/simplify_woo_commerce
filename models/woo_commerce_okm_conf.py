@@ -629,6 +629,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             attr_value = attribute['option']
             odoo_attr_names_and_ids = {}
 
+
             # get all attributes names and their ids from Odoo
             for attr in attribute_obj.search([]):
                 name = attr.name.lower()
@@ -1169,7 +1170,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "type": "invoice",
                 "woo_channel_id": self.id
             }
-
         # shipping information
         shipping_info = {}
         if order['shipping']:
@@ -1185,7 +1185,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # "state": order['shipping']['state'],
                 "type": "delivery",
                 "woo_channel_id": self.id
-
             }
         return billing_info, shipping_info
 
@@ -1429,4 +1428,3 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             'target': 'new',
             'context': {'default_message': message},
         }
-

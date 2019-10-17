@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError, RedirectWarning, UserError
-from .. python_magic_0_4_11 import magic
-from .. wordpress_xmlrpc import base
-from .. wordpress_xmlrpc import compat
-from .. wordpress_xmlrpc import media
+from ..python_magic_0_4_11 import magic
+from ..wordpress_xmlrpc import base
+from ..wordpress_xmlrpc import compat
+from ..wordpress_xmlrpc import media
 import base64
 import tempfile
+
 
 class SpecialTransport(compat.xmlrpc_client.Transport):
     user_agent = 'Mozilla/5.0 (Windows NT 6.0) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.43 Safari/537.31'
@@ -38,7 +39,7 @@ def upload_image(image_data, image_name, host, username, password):
     return res
 
 
-#INHERT PRODUCT_TEMPLATE AND ADD NEW FIELDS FOR WOO_CHANNEL INSTANCE ID
+# INHERT PRODUCT_TEMPLATE AND ADD NEW FIELDS FOR WOO_CHANNEL INSTANCE ID
 class InhertProductTemplate(models.Model):
     _inherit = 'product.template'
 
@@ -54,7 +55,6 @@ class InhertProductTemplate(models.Model):
 
     pos = fields.Integer(string='Channel pos', compute=_compute_pos)
 
-
     @api.depends('product_variant_ids', 'product_variant_ids.default_code')
     def _compute_default_code(self):
         unique_variants = self.filtered(lambda template: len(template.product_variant_ids) == 1)
@@ -67,7 +67,6 @@ class InhertProductTemplate(models.Model):
             for template in (self - unique_variants):
                 template.default_code = ''
 
-
     def toggle_active(self):
         super(InhertProductTemplate, self).toggle_active()
         for record in self:
@@ -78,7 +77,7 @@ class InhertProductTemplate(models.Model):
                     'status': 'draft'
                 }
                 wcapi = record.channel_id.create_woo_commerce_object()
-                wcapi.put("products/%s"%(woo_id), data)
+                wcapi.put("products/%s" % (woo_id), data)
 
             elif record.active and (int(record.channel_id.pos) == 3):
                 woo_id = record.woo_product_id
@@ -274,11 +273,10 @@ class InhertProductTemplate(models.Model):
     #                     # create/update variant and then get the variant id
     #                 data['variations'] = variations
     #             print("Update product", wcapi.put('products/%s'% (woo_id), data).json())
-    
+
     def export_woo_product(self):
         product = self
         if int(product.channel_id.pos) == 3:
-
 
             woo_id = product.woo_product_id
             # data = {'manage_stock': 'true'}
@@ -374,7 +372,8 @@ class InhertProductTemplate(models.Model):
                 'description': product.description if product.description else ' ',
                 'sku': product.default_code if product.default_code else ' ',
                 'price': str(product.list_price),
-                'regular_price': str(product.woo_regular_price) if product.woo_regular_price != 0.0 else str(product.list_price),
+                'regular_price': str(product.woo_regular_price) if product.woo_regular_price != 0.0 else str(
+                    product.list_price),
                 'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else ' ',
                 'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
                 'manage_stock': 'true',
@@ -400,20 +399,12 @@ class InhertProductTemplate(models.Model):
             attributes = product.attribute_line_ids
             print('Attributes', attributes)
             if len(attributes) > 0:
-                for attribute in attributes:
-                    values = attribute.value_ids
-                    for value in values:
-                        attribute_data = {
-                            "name": value.name,
-                            "type": "select",
-                        }
-                        # print(wcapi.post("products/attributes", attribute_data).json())
-                        print("Value name", value.name)
                 variants = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
                 variations = []
                 variant_data = {}
                 data['type'] = 'variable'
                 wcapi.put('products/%s' % (woo_id), data).json()
+                product_attributes = []
                 for variant in variants:
                     print("VARIANT WOO ID", variant.woo_variant_id)
                     print("variant weight", str(variant.weight))
@@ -443,12 +434,37 @@ class InhertProductTemplate(models.Model):
                     attributes = []
                     variant_attributes = variant.attribute_value_ids
                     for attribute in variant_attributes:
+                        print("ATTRIBUTE TO EXPORT", attribute)
                         attribute_data = {}
                         attribute_data['name'] = attribute.attribute_id.name
                         attribute_data['option'] = attribute.name
+
+                        print('WOO ATTRIBUTE ID', attribute.attribute_id.woo_attribute_id)
+                        #if attribute exist in woo
+                        if attribute.attribute_id.woo_attribute_id != 0:
+                            attribute_data['id'] = attribute.attribute_id.woo_attribute_id
+                            print("Attribute exist in Woo Commerce")
+                            create_value = wcapi.post(
+                                "products/attributes/%s/terms" % (attribute.attribute_id.woo_attribute_id),
+                                {"name": attribute.name}).json()
+                            print("CREATED VALUE 1", create_value) #
+
+                        #if attribute does not exist in Woo
+                        else:
+                            created_attribute = wcapi.post("products/attributes",
+                                                           {"name": attribute.attribute_id.name}).json()
+                            print("CREATED ATTRIBUTE", created_attribute)
+                            created_attribute_id = created_attribute['id']
+                            attribute_data['id'] = created_attribute_id
+                            print("Created attribute ID", created_attribute_id)
+                            update_attribute = self.env['product.attribute'].search([('id', '=', attribute.attribute_id.id)]).write({'woo_attribute_id': created_attribute_id})
+
+                            create_value = wcapi.post("products/attributes/%s/terms" % (created_attribute_id),
+                                                      {"name": attribute.name}).json()
+                            print("CREATED VALUE", create_value)
                         attributes.append(attribute_data)
-                        print("CREATE ATTRIBUTE", wcapi.post("products/attributes", {"name": attribute.attribute_id.name}).json())
-                    # variant_data['attributes'] = attributes
+                        product_attributes.append(attribute_data)
+                    variant_data['attributes'] = attributes
 
                     # Add woo ID if exist -> update variant
                     if variant.woo_variant_id:
@@ -456,17 +472,18 @@ class InhertProductTemplate(models.Model):
                         print("Update variant",
                               wcapi.put("products/%s/variations/%s" % (woo_id, variant.woo_variant_id),
                                         variant_data).json())
-
                     else:  # -> create variant
                         print("Woo ID", woo_id)
                         print("Variant Data", variant_data)
                         var = wcapi.post("products/%s/variations" % (woo_id), variant_data).json()
                         print("Create variant", var)
                         variant_data['id'] = var['id']
-
                     variations.append(variant_data['id'])
                     # create/update variant and then get the variant id
+                data['attributes'] = product_attributes
+                data['default_attributes'] = product_attributes
                 data['variations'] = variations
+            print("DATA", data)
             print("Update product", wcapi.put('products/%s' % (woo_id), data).json())
             view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
             message = 'Product successfully exported to Woo Commerce!'
@@ -481,14 +498,3 @@ class InhertProductTemplate(models.Model):
                 'target': 'new',
                 'context': {'default_message': message},
             }
-
-
-
-
-
-
-
-
-
-
-
