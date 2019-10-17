@@ -480,8 +480,7 @@ class InhertProductTemplate(models.Model):
                         print("Create variant", var)
                         if var.get('id'):
                             variant_data['id'] = var['id']
-                    if var.get('id'):
-                        variations.append(variant_data['id'])
+                            variations.append(variant_data['id'])
                     # create/update variant and then get the variant id
                 data['attributes'] = product_attributes
                 data['default_attributes'] = product_attributes
