@@ -400,6 +400,15 @@ class InhertProductTemplate(models.Model):
             attributes = product.attribute_line_ids
             print('Attributes', attributes)
             if len(attributes) > 0:
+                for attribute in attributes:
+                    values = attribute.value_ids
+                    for value in values:
+                        attribute_data = {
+                            "name": value.name,
+                            "type": "select",
+                        }
+                        # print(wcapi.post("products/attributes", attribute_data).json())
+                        print("Value name", value.name)
                 variants = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
                 variations = []
                 variant_data = {}
@@ -448,7 +457,7 @@ class InhertProductTemplate(models.Model):
                             create_value = wcapi.post(
                                 "products/attributes/%s/terms" % (attribute.attribute_id.woo_attribute_id),
                                 {"name": attribute.name}).json()
-                            print("CREATED VALUE 1", create_value) #
+                            print("CREATED VALUE 1", create_value)
 
                         #if attribute does not exist in Woo
                         else:
@@ -482,8 +491,8 @@ class InhertProductTemplate(models.Model):
                             variant_data['id'] = var['id']
                             variations.append(variant_data['id'])
                     # create/update variant and then get the variant id
-                data['attributes'] = product_attributes
-                data['default_attributes'] = product_attributes
+                # data['attributes'] = product_attributes
+                # data['default_attributes'] = product_attributes
                 data['variations'] = variations
             print("DATA", data)
             print("Update product", wcapi.put('products/%s' % (woo_id), data).json())

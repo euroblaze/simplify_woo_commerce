@@ -545,7 +545,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # If yes delete the customer from Odoo too.
         # self.check_deleted_customers(woo_customers_list)
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
-        message = 'Successfully were imported ' + str(imported_customers) + ' customers from your Woo Coommerce shop into Odoo. ' + str(updated_customers) + ' customers are updated.'
+        message = 'Successfully were imported ' + str(imported_customers) + ' customers from your Woo Coommerce shop into Odoo. ' + str(updated_customers) + ' customers were updated.'
         return {
             'name': 'Information',
             'view_type': 'form',
@@ -1085,7 +1085,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
         message = 'Successfully were imported ' + str(
             imported_products) + ' products from your Woo Coommerce shop into Odoo. ' + str(
-            updated_products) + ' products are updated.'
+            updated_products) + ' products were updated.'
         return {
             'name': 'Information',
             'view_type': 'form',
