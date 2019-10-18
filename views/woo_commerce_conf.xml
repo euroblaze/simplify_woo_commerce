@@ -29,17 +29,17 @@
                     <page name="WooCommerceTaxes" string="Taxes" sequence="1"
                           attrs="{'invisible': [('pos', '!=', '3')]}">
                         <group>
-                            <group>
+
                                 <button name="import_woo_taxes" type="object" string="Import Taxes"
                                         class="btn-primary"/>
                                 <p>
                                     <b>
                                         After completing the API Configuration,
                                         the next step is to import the taxes from Woo Commerce and map them to the odoo
-                                        taxes that you wish to be used.
+                                        taxes that you wish to be used. You should click on EDIT button of the form to start adding maps.
                                     </b>
                                 </p>
-                            </group>
+
                         </group>
                         <group>
                             <group>

@@ -18,7 +18,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     pos = fields.Selection(selection_add=[('3', 'Woo Commerce')])
 
     # Field for tax mapping
-    woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Tax map")
+    woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Mapped Taxes")
     woo_taxes = fields.One2many('woo.taxes', 'channel_id', string="Imported taxes")
     # Field for Customers
     woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers",
@@ -243,7 +243,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 except Exception as e:
                     _logger.error(e)
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
-        message = 'Successfully were imported ' + str(imported_taxes) + ' taxes from your Woo Coommerce shop into Odoo'
+
+        message = ''
+        if imported_taxes != 0:
+            message = 'Operation successful, ' + str(imported_taxes) + ' taxes were imported from your Woo Coommerce shop into Odoo.'
+        else:
+            message = "All taxes are already up to date."
+
         return {
             'name': 'Information',
             'view_type': 'form',
