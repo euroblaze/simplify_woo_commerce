@@ -43,6 +43,14 @@
                         </group>
                         <group>
                             <group>
+                                <field name="woo_taxes">
+                                    <tree>
+                                        <field name="name"/>
+                                        <field name="rate"/>
+                                    </tree>
+                                </field>
+                            </group>
+                            <group>
                                 <field name="woo_taxes_map" context="{'channel_id':id}">
                                     <tree>
                                         <field name="woo_tax"/>
