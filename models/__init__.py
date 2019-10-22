@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-from . import models
 from . import woo_commerce_okm_conf
 from . import woo_taxes
 from . import res_partner
