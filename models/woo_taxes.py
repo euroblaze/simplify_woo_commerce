@@ -10,7 +10,6 @@ _logger = logging.getLogger(__name__)
 #CLASS FOR IMPORTING WOO COMMERCE TAXES
 class ImportWooTaxes(models.Model):
     _name = 'woo.taxes'
-    _description = 'Odoo <-> Woo Taxes Mapping'
 
     woo_tax_id = fields.Integer(string='Woo Tax ID')
     country = fields.Char(string='Country code')
@@ -50,7 +49,7 @@ class ChannelWooTaxes(models.Model):
             }}
 
     woo_tax = fields.Many2one('woo.taxes', required=True)
-    odoo_tax = fields.Many2one('account.tax', string='Odoo  tax', required=True)
+    odoo_tax = fields.Many2one('account.tax', string='Odoo Tax', required=True)
     woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', default=_print_self, readonly=True)
 
     #Overwrite on create to add log while creating map record

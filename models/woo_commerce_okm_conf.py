@@ -19,7 +19,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
     # Field for tax mapping
     woo_taxes_map = fields.One2many('woo.taxes.map', 'woo_channel_id', string="Mapped Taxes")
-    woo_taxes = fields.One2many('woo.taxes', 'channel_id', string="Imported taxes")
+    woo_taxes = fields.One2many('woo.taxes', 'channel_id', string="Imported taxes", readonly=True)
     # Field for Customers
     woo_customers = fields.One2many('res.partner', 'woo_channel_id', string="Customers",
                                     domain=[('parent_id', '=', None)])
@@ -76,6 +76,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         print(self.check_woo_url(self.woo_host))
         return wcapi
 
+    # Method for testing Woo Commerce Connection
     def woo_test_connection(self):
         wcapi = self.create_woo_commerce_object()
         wcapi.get('taxes')
@@ -148,7 +149,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         return res
 
     # Method for automaion import data from Woo Commerce
-    @api.model
     def import_woo_data(self):
         print('Cron')
         # woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])

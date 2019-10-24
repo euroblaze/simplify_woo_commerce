@@ -22,8 +22,19 @@
                             </group>
                         </group>
                         <group>
-                            <button name="woo_test_connection" type="object" string="Test Connection"
+                            <group>
+                                 <button name="woo_test_connection" type="object" string="Test Connection"
                                     class="btn-primary" />
+                            </group>
+
+
+                                 <group>
+                                    <button name="woo_helper" type="object" string="Help"
+                                    style="float:right; background-color:#ddd; color:#5f5e97; border-radius: 20%; border-color:#5f5e97;  font-weight: bold;"/>
+                                 </group>
+
+
+
                         </group>
                     </page>
                     <page name="WooCommerceTaxes" string="Taxes" sequence="1"
@@ -43,7 +54,7 @@
                         </group>
                         <group>
                             <group>
-                                <field name="woo_taxes">
+                                <field name="woo_taxes"  options="{'create': False}">
                                     <tree>
                                         <field name="name"/>
                                         <field name="rate"/>
