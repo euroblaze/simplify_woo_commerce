@@ -194,7 +194,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             name = tax['name']
             tax_class = tax['class']
 
-            tax_exist = self.env['woo.taxes'].search_count([('woo_tax_id', '=', id)])
+            tax_exist = self.env['woo.taxes'].search_count([('woo_tax_id', '=', id), ('channel_id', '=', self.id)])
             if tax_exist == 1:  # First check if tax exist
                 # print("Tax already exist")
                 # maybe the tax is updated in woo, so write the attributes again

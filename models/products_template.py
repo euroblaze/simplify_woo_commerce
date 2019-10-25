@@ -326,8 +326,9 @@ class InhertProductTemplate(models.Model):
                             categ_id.write({'channel_id': product.channel_id.id})
                             print("CATEG ID", categ_id.channel_id)
                             category = wcapi.post("products/categories", categ_data).json()
-                            categ_id.woo_category_id = category['id']
-                            categ_data['id'] = category['id']
+                            if category['id']:
+                                categ_id.woo_category_id = category['id']
+                                categ_data['id'] = category['id']
 
                     categories.append(categ_data)
 
