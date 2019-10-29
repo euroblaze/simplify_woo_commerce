@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "simplify_woo_commerce",
+    'name': "Woocommerce Connector",
+
     'summary': """
         Woo Commerce Connector""",
+
     'description': """
        Odoo module for connecting with any Woo Commerce Shop. 
     """,
+
     'author': "simplify-erp",
-    'website': "https://www.simplify-erp.com/shops/woocommerce/",
+    'website': "http://www.simplify-erp.com",
+
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Uncategorized',
-    'version': '1.0',
+    'version': '0.1',
+
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale_management', 'account', 'stock'],
+    'depends': ['base', 'simplify_support', 'simplify_okm_core', 'sale_management', 'account', 'stock'],
+
     # always loaded
     'data': [
         'security/ir.model.access.csv',
