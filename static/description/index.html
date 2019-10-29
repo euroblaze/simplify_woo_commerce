@@ -1,68 +1,460 @@
-
+<!-- MAIN -->
 <section class="oe_container">
     <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan" style="color:#875A7B;">Woo connector</h2>
+        <h2 class="oe_slogan" style="font-weight: bold;color:#875A7B;">Woocommerce Connector</h2>
         <h3 class="oe_slogan">Connect Woocommerce shop with your odoo ERP</h3>
-        <div class="oe_demo oe_picture oe_screenshot">
-            <img src="woo.jpeg">
-        </div>
+        <p>
+            This connector enables the automated and manual exchange of shop data into the ERP system for further processing.<br>
+
+            WooCommerce interface for Odoo is part of the multichannel e-commerce solution for online shop operators.<br>
+            <br>
+            <b>NOTE: </b>Before installing this module you'll need to install the core of the multichannel - <a href="https://apps.odoo.com/apps/modules/12.0/simplify_okm_core/">OKM Core</a>
+            <br>
+            
+        </p>
     </div>
 </section>
-
-
-<section class="oe_container oe_dark">
-    <div class="oe_row oe_spaced">
-
-            <h2 class="oe_slogan" style="color:#875A7B; text-align: left;">What does the odoo-WooCommerce interface do?</h2>
-            <p class="oe_mt32">
-            Woo provides a simple database structure and a variety of community plugins.
-Simplify-ERP®, as an odoo specialist, empowers online retailers with WooCommerce in use with multichannel e-commerce capabilities. Our odoo-WooCommerce interface enables the automated and manual exchange of shop data into ERP for further processing.
-            </p>
-
-    </div>
-</section>
-
 <section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan" style="color:#875A7B;">Product management and category management</h2>
-        <div class="oe_span6">
-            <img style="height:200px" class="oe_picture oe_screenshot" src="products.png"/>
-        </div>
-        <div class="oe_span6">
-            <p class="oe_mt32 text-justify">
-            With the odoo-WooCommerce interface, you as a shop owner can handle all product management tasks, such as: price adjustments, variant maintenance, image management and more in odoo centralized done.
-            </p>
-        </div>
+    <!-- HEADER -->
+    <div class="row oe_row oe_spaced">
+        <div class="col-lg-12 col-md-12 mb32"> 
+            <ul class="nav nav-tabs" id="Tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="description-tab" data-toggle="tab" href="#description" role="tab" aria-controls="description" aria-selected="true">Description</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="screenshots-tab" data-toggle="tab" href="#screenshots" role="tab" aria-controls="screenshots" aria-selected="false">Screenshots</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="documentation-tab" data-toggle="tab" href="#documentation" role="tab" aria-controls="documentation" aria-selected="false">Documentation</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="supdemo-tab" data-toggle="tab" href="#supdemo" role="tab" aria-controls="supdemo" aria-selected="false">Demo & Support</a>
+                </li>                        
+                <li class="nav-item">
+                    <a class="nav-link" id="faq-tab" data-toggle="tab" href="#faq" role="tab" aria-controls="faq" aria-selected="false">FAQ</a>
+                </li>
+                
+            </ul>
+        </div>    
     </div>
-</section>
+    <!-- /HEADER -->
+    <div>    
+      <div class="tab-content" id="TabsContent" style="min-height: 200px;">
 
-<section class="oe_container oe_dark">
-<div class="oe_row oe_spaced">
-        <h2 class="oe_slogan" style="color:#875A7B;">Customer management</h2>
-        <div class="oe_span6">
-            <img style="height:200px" class="oe_picture oe_screenshot" src="customers.png"/>
+        <!----------------------------------- DESCRIPTION ------------------------>
+        <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+            <div class="row">
+
+                <div class="col-lg-12"> 
+
+
+                    <section class="oe_container">
+                        <div class="oe_row row">
+
+                                <h4 style="color:#875A7B; text-align: left;">What does the odoo-WooCommerce interface do?</h4>
+                                <p class="oe_mt32">
+                                Are you using Odoo for your day to day operations, and Wordpress for online-sale?
+                                Woo provides a simple database structure and a variety of community plugins.
+                    Simplify-ERP®, as an odoo specialist, empowers online retailers with WooCommerce in use with multichannel e-commerce capabilities. Our odoo-WooCommerce interface enables the automated and manual exchange of shop data into ERP for further processing:
+                                <div class="col-lg-6">
+                                    <ol>
+                                        <li>Product & categories</li>
+                                        <li>Customers</li>
+                                        <li>Orders</li>
+                                        <li>Taxes</li>
+                                        <li>Manage stocks</li>
+                                        <li>Manage prices</li>
+                                        <li>Connect multiple Woocommerce stores to Odoo</li>
+                                    </ol>
+                                    </p>
+                                </div>
+                                <div class="col-lg-6" style="background-color: transparent; border: none; box-shadow: none; margin-left: auto;">
+                                    <img style="height:200px;background-color:transparent;box-shadow:none; margin-left:auto; opacity: 0.8" class="oe_picture oe_screenshot" src="functionalities.png"/>
+                                </div>
+                        </div>
+                    </section>
+
+                    <section class="oe_container">
+                        <div class="oe_row">
+                            <h4 style="color:#875A7B;">Product management and category management</h4>
+                            <div class="oe_span6">
+                                <p class="oe_mt32 text-justify">
+                                With the odoo-WooCommerce interface, you as a shop owner can handle all product management tasks, such as: price adjustments, variant maintenance, image management and more in odoo centralized done.
+                                <ol>
+                                    <li>Bidirectionally downloadable prices, article descriptions and stocks</li>
+                                    <li>Real-time synchronization of prices and inventory data</li>
+                                    <li>Export products and products images</li>
+                                    <li>Search and filter products in various criteria</li>
+                                </ol>
+                                </p>
+                            </div>
+                            <div class="oe_span6" style="background-color: transparent; border: none; box-shadow: none; margin-left: auto;">
+                                <img style="height:200px;background-color:transparent;box-shadow:none; margin-left:auto; opacity: 0.8" class="oe_picture oe_screenshot" src="products.png"/>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="oe_container">
+                        <div class="oe_row">
+                            <h4 style="color:#875A7B;">Customer and data management</h4>
+                            <div class="oe_span6">
+                                <p class="oe_mt32 text-justify">
+                                Customer master data can also be managed in odoo. The interface groups customer data by sales channel. All orders as well as all communication to individual orders are to be found under the customer files.
+                                    <ol>
+                                        <li>Periodic auto-backup of customer data</li>
+                                        <li>Instant synchronization of changes in customer data</li>
+                                        <li>Segmentation of customers by country, tags, sales channel and more</li>
+                                        <li>Search and filter customers in various criteria</li>
+                                    </ol>
+                                </p>
+                            </div>
+                            <div class="oe_span6" style="background-color: transparent; border: none; box-shadow: none; margin-left: auto;">
+                                <img style="height:200px;background-color:transparent;box-shadow:none; margin-left:auto; opacity: 0.8" class="oe_picture oe_screenshot" src="customers.png"/>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="oe_container">
+                        <div class="oe_row">
+                            <h4 style="color:#875A7B;">Order processing</h4>
+                            <div class="oe_span6">
+                                <p class="oe_mt32 text-justify">
+                                WooCommerce orders can be processed centrally in odoo. Invoice and shipping documents can then be created uniformly in odoo. Tax amounts are also separated from the gross order amount and stored in dedicated accounting accounts.
+                                    <ol>
+                                        <li>One-click invoice creation</li>
+                                        <li>Send email of shipping/tracking-number with ready-made templates</li>
+                                        <li>Central processing of orders</li>
+                                        <li>Grouping orders by customers to your preference</li>
+                                        <li>Search and filter orders in various criteria</li>
+                                    </ol>
+
+                                </p>
+                            </div>
+                            <div class="oe_span6" style="background-color: transparent; border: none; box-shadow: none; margin-left: auto;">
+                                <img style="height:200px;background-color:transparent;box-shadow:none; margin-left:auto; opacity: 0.8" class="oe_picture oe_screenshot" src="orders.png"/>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="oe_container">
+                        <div class="oe_row"><br>
+                            <div class="col-lg-12">
+                                <p class="oe_mt32 text-justify">
+                                    This connector enables the automated and manual exchange of shop data into the ERP system for further processing.
+
+                                    WooCommerce interface for Odoo is part of the multichannel e-commerce solution for online shop operators.<br>
+
+                                    We offer you clean developer-documentation, mail and telephone support and integration and customization services.
+                                </p>
+                            </div>
+                            
+                        </div>
+                    </section>
+
+                </div>
+            </div>
         </div>
-        <div class="oe_span6">
-            <p class="oe_mt32 text-justify">
-            Customer master data can also be managed in odoo. The interface groups customer data by sales channel. All orders as well as all communication to individual orders are to be found under the customer files.
-            </p>
+
+        <!-- ------------------------------------------------------------------ -->
+
+
+        <!----------------------------------- SCREENSHOTS ------------------------>                    
+        <div class="tab-pane fade" id="screenshots" role="tabpanel" aria-labelledby="screenshots-tab">
+            <div class="row oe_row oe_spaced">                            
+                <div class="row oe_row oe_spaced" style="padding-bottom:10px;border-bottom: 1px solid #ddd">                            
+                    <div class="col-lg-6">
+                        <h4>Stocks are updated bidirectionally</h4><br>
+                        <p>
+                            If the stocks in Woocommerce change because of the sale of products, they are automatically mirrored in odoo via the odoo-Woocommerce interface. Likewise, stock changes in odoo are automatically uploaded to the Woocommerce Shop.
+                        </p>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                          <a href="screenshots/1.Woocommerce-stocks.png" target="_blank">
+                            <img src="screenshots/1.WOO-stocks.png" style="width:100%">
+                          </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row oe_row oe_spaced" style="padding-bottom:10px;border-bottom: 1px solid #ddd">                            
+                    <div class="col-lg-6">
+                        <h4>Updating the prices</h4><br>
+                        <p>
+                            Do you want to adjust the prices for a specific product? You can change this in odoo, and upload them to Woocommerce right away.
+                        </p>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                          <a href="screenshots/2.Prices-update.png" target="_blank">
+                            <img src="screenshots/2.Prices-update.png" style="width:100%">
+                          </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row oe_row oe_spaced" style="padding-bottom:10px;border-bottom: 1px solid #ddd">                            
+                    <div class="col-lg-6">
+                        <h4>The product prices are manageable in Odoo.</h4><br>
+                        <p>
+                            You can manage and set the prices individually for the article. Different prices can be set for different variants that belong to the same article.
+                        </p>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                          <a href="screenshots/1.prices.png" target="_blank">
+                            <img src="screenshots/1.prices.png" style="width:100%">
+                          </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row oe_row oe_spaced" style="padding-bottom:10px;border-bottom: 1px solid #ddd">                            
+                    <div class="col-lg-6">
+                        <h4>Product search according to various criteria.</h4><br>
+                        <p>
+                            In order to be able to work in odoo as efficiently as possible, it is possible to search for products using various product attributes or metadata.
+                        </p>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                          <a href="screenshots/4.product-search.png" target="_blank">
+                            <img src="screenshots/4.product-search.png" style="width:100%">
+                          </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row oe_row oe_spaced" style="padding-bottom:10px;border-bottom: 1px solid #ddd">                            
+                    <div class="col-lg-6">
+                        <h4>Export products in Woocommerce</h4><br>
+                        <p>
+                            Do you have a major update from your catalog. You can enter them directly in odoo and update them in Woocommerce at the click of a button.
+                        </p>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                          <a href="screenshots/export.png" target="_blank">
+                            <img src="screenshots/export.png" style="width:100%">
+                          </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row oe_row oe_spaced" style="padding-bottom:10px;border-bottom: 1px solid #ddd">                            
+                    <div class="col-lg-6">
+                        <h4>Management of product media files</h4><br>
+                        <p>
+                            As a webshop operator, you definitely want to attract customers with nice pictures. The images can be entered in odoo, and uploaded individually per product or the entire catalog.
+                        </p>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                          <a href="screenshots/6.management.png" target="_blank">
+                            <img src="screenshots/6.management.png" style="width:100%">
+                          </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row oe_row oe_spaced" style="padding-bottom:10px;border-bottom: 1px solid #ddd">                            
+                    <div class="col-lg-6">
+                        <h4>Remove items from the Woocommerce workshop</h4><br>
+                        <p>
+                            If you do not want to have certain items in your Woocommerce workshop, you can remove them from odoo at the click of a button. The same procedure applies to removing a particular variant article.
+                        </p>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                          <a href="screenshots/7.remove-products.png" target="_blank">
+                            <img src="screenshots/7.remove-products.png" style="width:100%">
+                          </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        <!-- ------------------------------------------------------------------ -->
+
+
+        <!----------------------------------- DOCUMENTATION----------------------->                    
+        <div class="tab-pane fade" id="documentation" role="tabpanel" aria-labelledby="documentation-tab">
+            <div class="row oe_row oe_spaced">
+                <div class="row oe_row oe_spaced">
+                    <div class="row oe_row oe_spaced">
+                        <div class="row oe_row oe_spaced">
+                            <div class="col-lg-1 col-sm-2 col-3">
+                                <img src="dev_doc_link.png" style="width: 100%">                          
+                            </div>
+                            <div class="col-lg-11 col-sm-10 col-9">
+                                <a href="https://www.notion.so/Developer-Documentation-for-odoo-WooCommerce-Connector-a96e0db1389e411fbf041b5c4ab6d42b">Developer Documentation</a>                    
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ------------------------------------------------------------------ -->
+
+
+
+
+        <!----------------------------------- SUPP&DEMO --------------------------------> 
+        <div class="tab-pane fade" id="supdemo" role="tabpanel" aria-labelledby="supdemo-tab">
+            <div class="row oe_row oe_spaced">
+                <div class="row oe_row oe_spaced">
+                    <div class="row oe_row oe_spaced">
+                        <div class="col-lg-1 col-sm-2 col-3">
+                            <div style="color: white; background-color: indigo; font-size: 30px; text-align: center;border-radius: 5px">$</div>                          
+                        </div>
+                        <div class="col-lg-11 col-sm-10 col-9">
+                          This product is eligible for cashback. By purchasing it, you get a <b>10% refund</b>. <br>                  
+                        </div>
+                    </div>
+                    <div class="row oe_row oe_spaced">
+                        <div class="col-lg-1 col-sm-2 col-3">
+                         
+                        </div>
+                        <div class="col-lg-11 col-sm-10 col-9">
+                            <a style="display: inline-block; background-color: indigo; color: white; padding: 10px; font-size: 14px; border-radius: 5px" href="https://www.simplify-erp.com/odoo-demo/">REQUEST FREE DEMO NOW!</a>                      
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ------------------------------------------------------------------ -->
+
+
+        <!----------------------------------- FAQ -------------------------------->      
+        <div class="tab-pane fade" id="faq" role="tabpanel" aria-labelledby="faq-tab">
+            <div class="row oe_row oe_spaced">
+                <div class="col-lg-12">
+                    <div class="accordion" id="faq_accordion">
+                      <div class="card" style="border:none">
+                        <div class="card-header" id="head_1">
+                          <h2 class="mb-0">
+                            <div class="btn btn-link" data-toggle="collapse" data-target="#collapse_1" aria-expanded="false" aria-controls="collapse_1">
+                              What are the requirements for installing this module?
+                            </div>
+                          </h2>
+                        </div>
+
+                        <div id="collapse_1" style="background-color: #eee" class="collapse" aria-labelledby="head_1" data-parent="#faq_accordion">
+                          <div class="card-body">
+                            To use this module you first need to download these two modules and one library:<br><br>
+                            <ol>
+                                <li><a href="https://www.odoo.com/apps/modules/12.0/simplify_okm_core/">OKM Core</a></li>
+                                <li><a href="https://www.odoo.com/apps/modules/12.0/simplify_support/">Support Module</a></li>
+                                <li>Install <a href="https://pypi.org/project/WooCommerce/">Woocommerce library</a> for python</li>
+                            </ol>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="card" style="border:none">
+                        <div class="card-header" id="heading_2">
+                          <h2 class="mb-0">
+                            <div class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse_2" aria-expanded="false" aria-controls="collapse_2">
+                              How do I install this module?
+                            </div>
+                          </h2>
+                        </div>
+                        <div id="collapse_2" style="background-color: #eee" class="collapse" aria-labelledby="heading_2" data-parent="#faq_accordion">
+                          <div class="card-body">
+                            This module can be installed like any other module. <br>Download the zip file, and extract it to your preffered addons folder. Once there update the apps list in youre Apps section, search for the technical name of this module and click on install.
+                            <br><br><b>Important Note</b>: This module is depended on the OKM Core module. Before installing, you'll also need to download and extract the <a href="https://www.odoo.com/apps/modules/12.0/simplify_okm_core/">OKM Core</a> into the same or any other addons folder.
+                          </div>
+                        </div>
+                      </div>
+                      <div class="card" style="border:none">
+                        <div class="card-header" id="heading_3">
+                          <h2 class="mb-0">
+                            <div class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse_3" aria-expanded="false" aria-controls="collapse_3">
+                              Is this app compatible with Odoo Enterprise or Odoo Community?
+                            </div>
+                          </h2>
+                        </div>
+                        <div id="collapse_3" style="background-color: #eee" class="collapse" aria-labelledby="heading_3" data-parent="#faq_accordion">
+                          <div class="card-body">
+                            This app is available for both community and enterprise.
+                          </div>
+                        </div>
+                      </div>
+                        <div class="card" style="border:none">
+                        <div class="card-header" id="heading_4">
+                          <h2 class="mb-0">
+                            <div class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapse_4" aria-expanded="false" aria-controls="collapse_4">
+                              Do you provide any support?
+                            </div>
+                          </h2>
+                        </div>
+                        <div id="collapse_4" style="background-color: #eee" class="collapse" aria-labelledby="heading_4" data-parent="#faq_accordion">
+                          <div class="card-body">
+                            Yes, we provide support for all of our modules. <br>
+                            Write an email to odoohelpdesk@simplify-erp.com, or use the <a href="https://www.odoo.com/apps/modules/12.0/simplify_support/">Support Module</a> to quickly open a ticket and get in touch with our team.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ------------------------------------------------------------------ -->
+
+
+      </div>
+      <!-- FOOTER -->
+      <!-- SUPPORT SECTION -->
+      <div class="row oe_row oe_spaced" style="border-top:1px solid #ddd; padding-top: 30px">
+        <div class="col-lg-6 col-md-6 mb32">
+          We offer provide <b>tech-support</b> and answer first line <b>support-calls</b>.<br>
+          We are available for consultation, and we offer free demos between 7:30 and 15:30 weekdays, Central EU.
+        </div>
+        <div class="col-lg-3 col-md-3 mb32">
+          <div class="row" style="text-align: center;">
+            <div class="col-lg-12">
+              <img style="height: 150px" src="blg2.png">                                  
+            </div>
+            <div class="col-lg-12">
+              Blagoj S.<br>
+              m54@simplify-erp.com
+            </div>                                
+          </div>
+        </div>
+        <div class="col-lg-3 col-md-3 mb32">
+          <div class="row" style="text-align: center;">
+            <div class="col-lg-12">
+              <img style="height: 150px; transform: scale(0.95,0.95);" src="ang1.png">                                  
+            </div>
+            <div class="col-lg-12">
+              Angjela O.<br>
+              m60@simplify-erp.com<br>
+              +49 177 3437 002
+            </div>                                
+          </div>
+        </div>
+      </div>
+      <!-- /SUPPORT SECTION -->
+      <!-- OMNILINK -->
+      <div class="row oe_row oe_spaced">
+        <div class="col-lg-12 col-md-12 mb32" style="background-color: #293037">
+
+<div id="responsive" style="text-align: center;">
+    <div class="title-bar" style="margin-bottom: 25px; margin-top: 10px">
+        <span style="font-size: 36px; font-weight: bold; color: #ffffff; line-height: 1.2;">We <img style="height: 37px" src="heart.png" /> 
+                <span style="display: inline-block;"><img style="vertical-align: top" src="https://www.simplify-erp.com/wp-content/uploads/2017/11/odoo_footer_block.png" alt="" width="113" height="36" class="aligncenter size-full wp-image-4685"></span> MULTICHANNEL
+        </span>
     </div>
-</section>
+    <p style="color: ghostwhite">
+    Our goal is to provide your company with the right software tools for cost-effective and profitable operation. Flexibility, security and profitability are our top priority.
+    </p>
+    <div class="footer_logo_strip" style="text-align: center; margin-top: 30px; margin-bottom: 50px">
 
-<section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan" style="color:#875A7B;">Order processing</h2>
-        <div class="oe_span6">
-            <img style="height:200px" class="oe_picture oe_screenshot" src="orders.png"/>
-        </div>
-        <div class="oe_span6">
-            <p class="oe_mt32 text-justify">
-            WooCommerce orders can be processed centrally in odoo. Invoice and shipping documents can then be created uniformly in odoo. Tax amounts are also separated from the gross order amount and stored in dedicated accounting accounts.
-            </p>
-        </div>
+
+        <a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/marktplatze/rakuten/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_rakuten_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2298"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/marktplatze/ebay/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_ebay_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2299"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/marktplatze/amazon-de/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_amazon_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2300"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/shops/shopware/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_shopware_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2301"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/shops/oxid/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_oxid_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2302"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/shops/magento/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_magento_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2297"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/multichannel/xedo-xml-erp-data-exchange-mit-odoo/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_xedo_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2315"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/multichannel/erp-connectors/odoo-schnittstelle-fur-futura4retail/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_futura_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2312"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="#"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/03/logo_mdn_135.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-2313"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/marktplatze/siroop-2/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/11/logo_siroop.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-4563"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/shops/prestashop/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/11/logo_prestashop.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-4565"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/multichannel/komplettlosung/datev-schnittstelle-fur-odoo/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/11/logo_DATEV.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-4564"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/marktplatze/ricardo/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/11/logo_ricardo.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-4566"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/multichannel/omnichannel-katalog-manager/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/11/logo_OKM.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-4567"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/fulfillment-by-amazon/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/11/logo_fulfillment_by_amazon.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-4729"></a><a style="margin:5px;display:inline-block; border-radius:50px;width: 100px;height:100px;" href="https://www.simplify-erp.com/woocomerce/"><img src="https://www.simplify-erp.com/wp-content/uploads/2017/11/logo_woocommerce.png" style="width: 100px; height: 100px; border-radius: 50px" class="aligncenter size-full wp-image-4730"></a>
     </div>
-</section>
 
-<section class="oe_container oe_separator">
+
+        </div>
+      </div>
+      <!-- /OMNILINK -->
+      <!-- /FOOTER -->
+    </div>
+
+
 </section>
+<!-- /MAIN -->
