@@ -59,7 +59,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     woo_cron_user_id = fields.Many2one('res.users')
 
     def check_woo_url(self0, woo_host):
-        if "http://" in woo_host:
+        if "http" in woo_host:
             return woo_host
         else:
             return "http://" + woo_host
