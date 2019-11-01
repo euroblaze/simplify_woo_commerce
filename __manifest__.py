@@ -19,7 +19,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'simplify_support', 'simplify_okm_core', 'sale_management', 'account', 'stock'],
+    'depends': ['base', 'simplify_okm_core', 'sale_management', 'account', 'stock'],
 
     # always loaded
     'data': [

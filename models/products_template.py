@@ -297,6 +297,9 @@ class InhertProductTemplate(models.Model):
             parent_path = categ_id.parent_path.split("/")
 
             for category in parent_path:
+                print("=====================================================", category)
+
+
 
                 if category != '':
                     categ_id = self.env['product.category'].search([('id', '=', category)])
