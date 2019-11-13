@@ -29,8 +29,9 @@
 
 
                                  <group>
-                                    <button name="woo_helper" type="object" string="Help"
-                                    style="float:right; background-color:#ddd; color:#5f5e97; border-radius: 20%; border-color:#5f5e97;  font-weight: bold;"/>
+
+                                    <button context="{'helper_name': 'help_woo_conf'}" name="helper" type="object" string="Help ?"
+                                    style="float:right; color:#5f5e97; border-radius: 3px; border-color:#5f5e97;  font-weight: bold;"/>
                                  </group>
 
 

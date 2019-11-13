@@ -9,3 +9,4 @@ from . import product_product
 from . import sale_order
 from . import product_attribute
 from . import pop_up_message
+from . import helper_data

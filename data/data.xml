@@ -1,0 +1,6 @@
+<odoo>
+<!--    <data noupdate="1">-->
+    <data>
+        <function model="woo.helper" name="init_data"/>
+    </data>
+</odoo>

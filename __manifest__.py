@@ -19,7 +19,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'simplify_okm_core', 'sale_management', 'account', 'stock'],
+    'depends': ['base', 'simplify_okm_core', 'sale_management', 'account', 'stock', 'simplify_support'],
 
     # always loaded
     'data': [
@@ -29,6 +29,7 @@
         'views/templates.xml',
         'views/product_template.xml',
         'views/pop_up_message_view.xml',
+        'data/data.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
