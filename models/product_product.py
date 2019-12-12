@@ -21,7 +21,7 @@ class WooChannelProductProductInherit(models.Model):
             to_uom = self.env['uom.uom'].browse([self._context['uom']])
 
         for product in self:
-            if product.woo_channel_id is not None:
+            if product.woo_channel_id and product.woo_channel_id is not None:
                 product.lst_price = product.woo_price
                 # print("Compute product lst_price", product.lst_price)
                 product.list_price = product.woo_price
@@ -32,8 +32,3 @@ class WooChannelProductProductInherit(models.Model):
                 else:
                     list_price = product.list_price
                 product.lst_price = list_price + product.price_extra
-
-
-
-
-
