@@ -306,7 +306,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # "role": woo_customer['role'],
             # "username": woo_customer['username'],
             "type": "contact",
-            "woo_channel_id": self.id
+            "woo_channel_id": self.id,
+            'channel_ids': [[6, False, [self.id]]]
+
         }
 
         # invoice/billing information
@@ -325,7 +327,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "email": woo_customer['billing']['email'],
                 "phone": woo_customer['billing']['phone'],
                 "type": "invoice",
-                "woo_channel_id": self.id
+                "woo_channel_id": self.id ,
+                'channel_ids': [[6, False, [self.id]]],
             }
             if woo_customer['billing']['phone']:
                 print("CUSTOMER HAS PHONE")
@@ -345,7 +348,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "country": self.get_country_id(woo_customer['shipping']['country']),
                 # "state": woo_customer['shipping']['state'],
                 "type": "delivery",
-                "woo_channel_id": self.id
+                "woo_channel_id": self.id,
+                'channel_ids': [[6, False, [self.id]]],
 
             }
 
@@ -1175,7 +1179,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "email": order['billing']['email'],
                 "phone": order['billing']['phone'],
                 "type": "invoice",
-                "woo_channel_id": self.id
+                "woo_channel_id": self.id,
+                'channel_ids': [[6, False, [self.id]]],
             }
         # shipping information
         shipping_info = {}
@@ -1191,7 +1196,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "country": self.get_country_id(order['shipping']['country']),
                 # "state": order['shipping']['state'],
                 "type": "delivery",
-                "woo_channel_id": self.id
+                "woo_channel_id": self.id,
+                'channel_ids': [[6, False, [self.id]]],
             }
         return billing_info, shipping_info
 
