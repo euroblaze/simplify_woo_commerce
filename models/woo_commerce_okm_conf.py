@@ -581,13 +581,14 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # print('DUPLICATE CATEGORY', duplicate_category)
             if duplicate_category != 0:
                 odoo_category = self.env['product.category'].search(
-                    [('woo_category_id', '=', category['id']), ('channel_id', '=', self.id)])
+                    [('woo_category_id', '=', category['id']), ('channel_id', '=', self.id)],limit=1)
                 # print('ODOO CATEGORY', odoo_category)
                 odoo_category.write({
                     'woo_parent_id': category['parent'],
                     'name': category['name'],
                     'channel_id': self.id,
                 })
+                # print("odoo cateogry", odoo_category)
                 woo_parent = odoo_category['woo_parent_id']
                 # print("WOO PARENT", woo_parent)
                 if woo_parent != 0:
