@@ -275,6 +275,17 @@ class InhertProductTemplate(models.Model):
     #             print("Update product", wcapi.put('products/%s'% (woo_id), data).json())
 
     def export_woo_product(self):
+        woo_categories = []
+        # get all woo categories
+        page = 1
+        while True:
+            categories_per_page = wcapi.get('products/categories', params={"per_page": 100, "page": page}).json()
+            page += 1
+            if not categories_per_page:
+                break
+            woo_categories += categories_per_page
+        self.import_woo_categories(woo_categories)
+
         product = self
         if int(product.channel_id.pos) == 3:
 
@@ -329,7 +340,7 @@ class InhertProductTemplate(models.Model):
                             categ_id.write({'channel_id': product.channel_id.id})
                             print("CATEG ID", categ_id.channel_id)
                             category = wcapi.post("products/categories", categ_data).json()
-                            if category['id']:
+                            if category.get('id'):
                                 categ_id.woo_category_id = category['id']
                                 categ_data['id'] = category['id']
 
