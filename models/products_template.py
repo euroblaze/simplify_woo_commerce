@@ -293,7 +293,7 @@ class InhertProductTemplate(models.Model):
                 if not categories_per_page:
                     break
                 woo_categories += categories_per_page
-            self.import_woo_categories(woo_categories)
+            product.channel_id.import_woo_categories(woo_categories)
 
             print("API", wcapi.__dict__)
 
