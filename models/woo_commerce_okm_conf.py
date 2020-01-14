@@ -7,9 +7,11 @@ import datetime
 import logging
 import requests
 import base64
+from datetime import date
+
 
 _logger = logging.getLogger(__name__)
-
+from datetime import timedelta
 
 class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     _inherit = 'channel.pos.settings'
@@ -112,6 +114,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         print(vals)
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).create(vals)
         if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
+            # t = vals['woo_interval_type']
+
             print("*******************************")
             vals['woo_nextcall'] = fields.Datetime.now()
             print(vals)
@@ -127,6 +131,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                             'interval_type': vals['woo_interval_type'] if vals.get(
                                 'woo_interval_type') else self.woo_interval_type, 'nextcall': fields.Datetime.now()})
         return res
+
+
 
     def write(self, vals):
         print("WRITE")
@@ -151,19 +157,19 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     # Method for automaion import data from Woo Commerce
     def import_woo_data(self):
         print('Cron')
-        # woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
-        # for channel in woo_channels:
-        #     print("SELF", channel)
-        #     print("IMPORT TAXES")
-        #     channel.import_woo_taxes()
-        #     print("IMPORT CUSTOMERS")
-        #     channel.import_woo_customers()
-        #     print("IMPORT PRODUCTS")
-        #     channel.import_woo_products()
-        #     print("IMPORT ORDERS")
-        #     channel.import_woo_orders()
-        #     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
-        #     cron.write({'numbercall': cron.numbercall + 1})
+        woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
+        for channel in woo_channels:
+            print("SELF", channel)
+            print("IMPORT TAXES")
+            channel.import_woo_taxes()
+            print("IMPORT CUSTOMERS")
+            channel.import_woo_customers()
+            print("IMPORT PRODUCTS")
+            channel.import_woo_products()
+            print("IMPORT ORDERS")
+            channel.import_woo_orders()
+            cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
+            # cron.write({'numbercall': cron.numbercall + 1})
 
     # On button click import all taxes from Woo into woo.taxes table
     def import_woo_taxes(self):

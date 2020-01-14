@@ -177,7 +177,7 @@
             <field name="state">code</field>
             <field name="code">model.import_woo_data()</field>
             <field name='interval_number'>1</field>
-            <field name="numbercall">0</field>
+            <field name="numbercall">-1</field>
             <field name="active">True</field>
         </record>
     </data>
