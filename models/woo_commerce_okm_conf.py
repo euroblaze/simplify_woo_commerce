@@ -120,7 +120,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             vals['woo_nextcall'] = fields.Datetime.now()
             print(vals)
             print(vals.keys())
-            if vals['woo_interval_number'] != 0:
+            if vals.get('woo_interval_number') != None and vals.get('woo_interval_number') != 0:
                 print("------------------")
                 cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
                 if not cron:
@@ -143,7 +143,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             print('TIME NOW', datetime.datetime.now())
             # self.woo_nextcall = fields.datetime.now()
             print("======================")
-            if vals.get('woo_interval_number') != 0:
+            if vals.get('woo_interval_number')!= None and  vals.get('woo_interval_number') != 0:
+                print("WOO INTERVAL NUMBER =======================================================================", vals.get('woo_interval_number') !=0 )
                 cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
                 if not cron:
                     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
