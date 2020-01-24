@@ -160,17 +160,18 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         print('Cron')
         woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
         for channel in woo_channels:
-            print("SELF", channel)
-            print("IMPORT TAXES")
-            channel.import_woo_taxes()
-            print("IMPORT CUSTOMERS")
-            channel.import_woo_customers()
-            print("IMPORT PRODUCTS")
-            channel.import_woo_products()
-            print("IMPORT ORDERS")
-            channel.import_woo_orders()
-            cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
-            # cron.write({'numbercall': cron.numbercall + 1})
+            # print("SELF", channel)
+            # print("IMPORT TAXES")
+            # channel.import_woo_taxes()
+            # print("IMPORT CUSTOMERS")
+            # channel.import_woo_customers()
+            # print("IMPORT PRODUCTS")
+            # channel.import_woo_products()
+            # print("IMPORT ORDERS")
+            # channel.import_woo_orders()
+            woo_products = self.env['product.template'].search([('channel_id', '=', channel.id),('master_id', '!=', None)])
+            for product in woo_products:
+                product.export_woo_product_stock()
 
     # On button click import all taxes from Woo into woo.taxes table
     def import_woo_taxes(self):
@@ -1245,18 +1246,35 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 del shipping_info['message_follower_ids']
             personal_customer_info = {}
             partner_id = 0
-            if order['customer_id']:
+            if order.get('customer_id') != 0:
                 customer = wcapi.get("customers/%s" % (order['customer_id'])).json()
                 role = customer['role']
-                if role != 'customer':
+
+                partner_exists = self.env['res.partner'].search_count([('woo_customer_id', '=', order['customer_id']),
+                                                                 ('woo_channel_id', '=', self.id),
+                                                                 ('parent_id', '=', None)])
+                if partner_exists != 0:
+                    partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                                 ('woo_channel_id', '=', self.id),
+                                                                 ('parent_id', '=', None)],limit=1)
+                else:
                     personal_customer_info = billing_info
                     print("PERSONAL INFO", personal_customer_info)
                     personal_customer_info['type'] = 'contact'
                     partner_id = self.env['res.partner'].create(personal_customer_info)
-                else:
-                    partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
-                                                                 ('woo_channel_id', '=', self.id),
-                                                                 ('parent_id', '=', None)])
+
+
+
+                # # da se smeni
+                # if role != 'customer':
+                #     personal_customer_info = billing_info
+                #     print("PERSONAL INFO", personal_customer_info)
+                #     personal_customer_info['type'] = 'contact'
+                #     partner_id = self.env['res.partner'].create(personal_customer_info)
+                # else:
+                #     partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                #                                                  ('woo_channel_id', '=', self.id),
+                #                                                  ('parent_id', '=', None)])
             else:
                 if billing_info.get('message_follower_ids'):
                     del billing_info['message_follower_ids']
@@ -1266,10 +1284,20 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     del billing_info['image_medium']
                 if billing_info.get('image_small'):
                     del billing_info['image_small']
-                personal_customer_info = billing_info
-                print("PERSONAL INFO", personal_customer_info)
-                personal_customer_info['type'] = 'contact'
-                partner_id = self.env['res.partner'].create(personal_customer_info)
+
+                partner_exists = self.env['res.partner'].search_count([('email', '=', order['billing']['email']),
+                                                                       ('woo_channel_id', '=', self.id),
+                                                                       ('parent_id', '=', None)])
+                if partner_exists != 0:
+                    partner_id = self.env['res.partner'].search([('email', '=', order['billing']['email']),
+                                                                 ('woo_channel_id', '=', self.id),
+                                                                 ('parent_id', '=', None)], limit=1)
+                else:
+                    personal_customer_info = billing_info
+                    print("PERSONAL INFO", personal_customer_info)
+                    personal_customer_info['type'] = 'contact'
+                    partner_id = self.env['res.partner'].create(personal_customer_info)
+
 
             billing_info['parent_id'] = partner_id.id
             shipping_info['parent_id'] = partner_id.id
@@ -1282,7 +1310,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'woo_order_number': woo_order_number,
                 'woo_order_key': woo_order_key,
                 'partner_id': partner_id.id,
-                'state': 'draft',
+                'state': 'sale',
                 'channel_id': self.id,
                 'date_order': date_order
             }
@@ -1352,6 +1380,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     sale_order_info['partner_shipping_id'] = shipping_record.id
                     payment_term = self.env['account.payment.term'].search([('name', '=', '30 Net Days')])
                     sale_order_info['payment_term_id'] = payment_term.id
+                    # sale_order_info['state']='sale'
                     # update order info
                     print('Sale order info', sale_order_info)
                     sale_order.write(sale_order_info)
@@ -1426,6 +1455,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 order_lines = self.create_woo_order_lines(order_lines, sale_order.id, False)
                 # add order lines
                 sale_order.write({'order_line': [(6, 0, order_lines)]})
+                sale_order.action_confirm()
 
         # check if some order was deleted
         self.check_woo_deleted_orders(woo_order_numbers)
