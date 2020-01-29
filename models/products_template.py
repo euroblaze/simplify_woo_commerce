@@ -385,7 +385,8 @@ class InhertProductTemplate(models.Model):
                 'price': str(product.list_price),
                 'regular_price': str(product.woo_regular_price) if product.woo_regular_price != 0.0 else str(
                     product.list_price),
-                'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else ' ',
+                'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else str(
+                    product.list_price),
                 'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
                 'manage_stock': 'true',
                 'stock_quantity': product.virtual_available,
