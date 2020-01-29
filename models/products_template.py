@@ -385,8 +385,7 @@ class InhertProductTemplate(models.Model):
                 'description': product.description if product.description else ' ',
                 'sku': product.default_code if product.default_code else ' ',
                 'price': str(product.list_price),
-                'regular_price': str(product.woo_regular_price) if product.woo_regular_price != 0.0 else str(
-                    product.list_price),
+                'regular_price': str(product.woo_regular_price) if product.woo_regular_price != 0.0 else ' ',
                 'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else str(
                     product.list_price),
                 'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
