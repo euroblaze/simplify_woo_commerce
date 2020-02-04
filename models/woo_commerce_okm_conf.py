@@ -1167,6 +1167,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # order line does not exist -> create
                 print("ORDER LINE INFO", order_line_info)
                 order_line = self.env['sale.order.line'].create(order_line_info)
+                print(order_line)
                 order_line_ids.append(order_line.id)
 
         return order_line_ids
@@ -1310,7 +1311,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'woo_order_number': woo_order_number,
                 'woo_order_key': woo_order_key,
                 'partner_id': partner_id.id,
-                'state': 'sale',
+                'state': 'draft',
                 'channel_id': self.id,
                 'date_order': date_order
             }
