@@ -583,7 +583,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         woo_categories.sort(key=lambda s: s['parent'])
         # print(woo_categories)
         for category in woo_categories:
-            # print(category)
+            _logger.info(category)
             duplicate_category = self.env['product.category'].search_count(
                 [('woo_category_id', '=', category['id']), ('channel_id', '=', self.id)])
             # print('DUPLICATE CATEGORY', duplicate_category)
