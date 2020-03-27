@@ -30,4 +30,4 @@ deploy_production:
     environment:
         name: production
     only:
-        - test-branch-production
+        - test-branch-master
