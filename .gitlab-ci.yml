@@ -8,7 +8,7 @@ deploy_staging:
         - testcc-staging
     script:
         - echo "Deploying..."
-        - cd /srv/NFS/${PVC_STAGING}/addons/12.0/simplify_woo_commerce && git pull
+        - cd /srv/NFS/${PVC_STAGING}/addons/12.0/simplify_woo_commerce && sudo git pull
         - echo "Deployed"
         - echo "Daymm"
     environment:
