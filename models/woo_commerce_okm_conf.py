@@ -79,33 +79,33 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         return wcapi
 
     # Method for testing Woo Commerce Connection
-    def woo_test_connection(self):
-        wcapi = self.create_woo_commerce_object()
-        wcapi.get('taxes')
-        view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
-        try:  # check the woo_commerce connection
-            if wcapi.get('taxes').status_code == 200:
-                logs = []
-                logs.append(
-                    (0, 0,
-                     {'date': str(datetime.datetime.now()), 'message': 'Connection Successful!! WC object created.',
-                      'channel_id': self.id, 'type': 'CONFIG'}))
-                self.update({'log_lines': logs})
+    # def woo_test_connection(self):
+    #     wcapi = self.create_woo_commerce_object()
+    #     wcapi.get('taxes')
+    #     view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
+    #     try:  # check the woo_commerce connection
+    #         if wcapi.get('taxes').status_code == 200:
+    #             logs = []
+    #             logs.append(
+    #                 (0, 0,
+    #                  {'date': str(datetime.datetime.now()), 'message': 'Connection Successful!! WC object created.',
+    #                   'channel_id': self.id, 'type': 'CONFIG'}))
+    #             self.update({'log_lines': logs})
 
-                return {
-                    'name': 'Information',
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'views': [(view_id, 'form')],
-                    'res_model': 'custom.pop.up.message',
-                    'view_id': view_id,
-                    'type': 'ir.actions.act_window',
-                    'target': 'new',
-                    'context': {'default_message': 'Connection successful!!'},
-                }
+    #             return {
+    #                 'name': 'Information',
+    #                 'view_type': 'form',
+    #                 'view_mode': 'form',
+    #                 'views': [(view_id, 'form')],
+    #                 'res_model': 'custom.pop.up.message',
+    #                 'view_id': view_id,
+    #                 'type': 'ir.actions.act_window',
+    #                 'target': 'new',
+    #                 'context': {'default_message': 'Connection successful!!'},
+    #             }
 
-        except Exception as e:
-            _logger.error(e)
+    #     except Exception as e:
+    #         _logger.error(e)
 
     # Overwrite create function to call the crone
     @api.model
