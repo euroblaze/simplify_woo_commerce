@@ -11,7 +11,7 @@ deploy_production:
         - echo "Deploying..."
         - cd /srv/NFS/${PVC_PRODUCTION}/addons/12.0/simplify_woo_commerce && git pull -b test-branch-master https://${GIT_USERNAME}:${GIT_PASSWORD}@git.euroblaze.de/simplify/simplify_woo_commerce
         - echo "Deployed"
-        - echo "Daym"
+        - echo "Daymmm"
     environment:
         name: production
     only:
