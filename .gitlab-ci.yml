@@ -4,6 +4,9 @@ stages:
 
 deploy_production:
     stage: deploy
+    tags:
+        - test-cc
+        - testcc-production
     script:
         - echo "Deploying..."
         - cd /srv/NFS/${PVC_PRODUCTION}/addons/12.0/simplify_woo_commerce && git pull https://${GIT_USERNAME}:${GIT_PASSWORD}@git.euroblaze.de/simplify/simplify_woo_commerce
@@ -17,6 +20,9 @@ deploy_production:
 
 deploy_staging:
     stage: deploy
+    tags:
+        - test-cc
+        - testcc-staging
     script:
         - echo "Deploying..."
         - cd /srv/NFS/${PVC_STAGING}/addons/12.0/simplify_woo_commerce && git pull https://${GIT_USERNAME}:${GIT_PASSWORD}@git.euroblaze.de/simplify/simplify_woo_commerce
