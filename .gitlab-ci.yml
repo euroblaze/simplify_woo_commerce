@@ -10,7 +10,7 @@ deploy_staging:
         - echo "Deploying..."
         - cd /srv/NFS/${PVC_STAGING}/addons/12.0/simplify_woo_commerce && sudo git pull
         - echo "Deployed"
-        - sudo kubectl get pods -n ${NAMESPACE_STAGE} | grep 'shop' | awk '{print $1}'
+        - sudo kubectl logs $(kubectl get pods -n ${NAMESPACE_STAGE} | grep 'shop' | awk '{print $1}')
     environment:
         name: staging
     only:
@@ -26,7 +26,6 @@ deploy_production:
         - echo "Deploying..."
         - cd /srv/NFS/${PVC_PRODUCTION}/addons/12.0/simplify_woo_commerce && sudo git pull
         - echo "Deployed"
-        - echo "Daymm"
     environment:
         name: production
     only:
