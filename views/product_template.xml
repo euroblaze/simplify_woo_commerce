@@ -44,6 +44,14 @@
                 <xpath expr="//form[@name='Product Template']/sheet[1]/notebook[1]" position="inside">
                     <page name="woo_information" string="Woo Commerce Information" sequence="1"
                           attrs="{'visible': [('pos', '=', '3')]}">
+                        <group>
+                            <group>
+                                <field name="woo_status"/>
+                            </group>
+                            <group>
+
+                            </group>
+                        </group>
 
 
                     </page>

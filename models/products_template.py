@@ -47,6 +47,10 @@ class InhertProductTemplate(models.Model):
     woo_sale_price = fields.Float(string='Woo Sale price', description="Price when the product is on sale")
     woo_regular_price = fields.Float(string='Woo Regular price', description="Regular price of the product")
     woo_sku = fields.Char("Woo SKU")
+    woo_status = fields.Selection([('draft', 'Draft'),
+                                   ('pending', 'Pending Review'),
+                                   ('publish', "Published")], string = "Status", default="draft",
+                                  description="Product status (post status). Options: draft, pending review and publish. Default is draft.")
 
     def _compute_pos(self):
         if self.channel_id:
