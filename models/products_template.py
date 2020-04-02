@@ -395,7 +395,7 @@ class InhertProductTemplate(models.Model):
                 'stock_quantity': product.virtual_available,
                 'weight': str(product.weight),
                 'categories': [categories[-1]],
-                'status': 'publish'
+                'status': product.woo_status
 
             })
             print("DATA", data)
