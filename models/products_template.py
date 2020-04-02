@@ -49,10 +49,14 @@ class InhertProductTemplate(models.Model):
     woo_sku = fields.Char("Woo SKU")
     woo_status = fields.Selection([('draft', 'Draft'),
                                    ('pending', 'Pending Review'),
-                                   ('publish', "Published")], string="Status", default="draft",
+                                   ('publish', "Published")],
+                                  string="Status",
+                                  default="draft",
                                   description="Product status (post status). Options: draft, pending review and publish. Default is draft.")
     woo_export_type = fields.Selection([('full', "Full Product"),
-                                        ('compact', "Without Images and Text")], string="Export type", default='full',
+                                        ('compact', "Without Images and Text")],
+                                       string="Export type",
+                                       default='compact',
                                        description="Choose type of Product export: Full Product- with all informtion or Without Images and text"
     )
 
@@ -381,13 +385,13 @@ class InhertProductTemplate(models.Model):
                         'name': res['title']
                     }
                     images.append(image)
-            data['images'] = images
-            print("IMAGES", images)
-            print(product.default_code)
+            if product.woo_export_type == "full":
+                data['images'] = images
+                data['description'] = product.description if product.description else ' '
+
 
             data.update({
                 'name': product.name,
-                'description': product.description if product.description else ' ',
                 'sku': product.default_code if product.default_code else ' ',
                 'price': str(product.list_price),
                 'regular_price': str(product.woo_regular_price) if product.woo_regular_price != 0.0 else ' ',
