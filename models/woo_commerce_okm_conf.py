@@ -583,13 +583,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         woo_categories.sort(key=lambda s: s['parent'])
         # print(woo_categories)
         for category in woo_categories:
-            # print(category)
+            _logger.info(category)
             duplicate_category = self.env['product.category'].search_count(
-                [('woo_category_id', '=', category['id']), ('channel_id', '=', self.id)])
-            # print('DUPLICATE CATEGORY', duplicate_category)
+                [('woo_category_id', '=', int(category['id'])), ('channel_id', '=', self.id)])
+            _logger.info('DUPLICATE CATEGORY', duplicate_category)
             if duplicate_category != 0:
                 odoo_category = self.env['product.category'].search(
-                    [('woo_category_id', '=', category['id']), ('channel_id', '=', self.id)],limit=1)
+                    [('woo_category_id', '=', int(category['id'])), ('channel_id', '=', self.id)],limit=1)
                 # print('ODOO CATEGORY', odoo_category)
                 odoo_category.write({
                     'woo_parent_id': category['parent'],
@@ -597,7 +597,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     'channel_id': self.id,
                 })
                 # print("odoo cateogry", odoo_category)
-                woo_parent = odoo_category['woo_parent_id']
+                woo_parent = int(odoo_category['woo_parent_id'])
                 # print("WOO PARENT", woo_parent)
                 if woo_parent != 0:
                     parent_category = self.env['product.category'].search([('woo_category_id', '=', woo_parent),
@@ -612,9 +612,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
             else:
                 odoo_category = self.env['product.category'].create({
-                    'woo_category_id': category['id'],
+                    'woo_category_id': int(category['id']),
                     # 'parent_id' : category['parent'],
-                    'woo_parent_id': category['parent'],
+                    'woo_parent_id': int(category['parent']),
                     'name': category['name'],
                     'channel_id': self.id,
                 })
