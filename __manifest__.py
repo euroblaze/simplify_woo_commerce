@@ -30,6 +30,7 @@
         'views/product_template.xml',
         'views/pop_up_message_view.xml',
         'data/data.xml',
+        'views/sale_order_views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
