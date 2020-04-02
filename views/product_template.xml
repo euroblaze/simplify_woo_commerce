@@ -1,33 +1,56 @@
 <odoo>
     <data>
-<!--        <record id="woo_product_template_view" model="ir.actions.server">-->
-<!--            <field name="name">Export to Woo Commerce</field>-->
-<!--            <field name="model_id" ref="model_product_template"/>-->
-<!--            <field name="binding_model_id" ref="model_product_template"/>-->
-<!--            <field name="state">code</field>-->
-<!--            <field name="code" >-->
-<!--                if records:-->
-<!--                action = records.export_woo_products(records)-->
-<!--            </field>-->
-<!--        </record>-->
+        <!--        <record id="woo_product_template_view" model="ir.actions.server">-->
+        <!--            <field name="name">Export to Woo Commerce</field>-->
+        <!--            <field name="model_id" ref="model_product_template"/>-->
+        <!--            <field name="binding_model_id" ref="model_product_template"/>-->
+        <!--            <field name="state">code</field>-->
+        <!--            <field name="code" >-->
+        <!--                if records:-->
+        <!--                action = records.export_woo_products(records)-->
+        <!--            </field>-->
+        <!--        </record>-->
 
 
         <record id="view_product_template_form_woo_inherited" model="ir.ui.view">
-        <field name="name">product.template.woo.fields</field>
-        <field name="model">product.template</field>
+            <field name="name">product.template.woo.fields</field>
+            <field name="model">product.template</field>
             <field name="inherit_id" ref="product.product_template_only_form_view"/>
-        <field name="arch" type="xml">
-            <xpath expr="//page[@name='general_information']//field[@name='list_price']" position='after'>
-                <field name="pos" invisible="1"/>
-                <field name="woo_regular_price" attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
-                <field name="woo_sale_price" attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
-            </xpath>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position='after'>
+                    <group>
+                        <field name="pos" invisible="1"/>
+                    </group>
+                </xpath>
+
+                <xpath expr="//page[@name='general_information']//field[@name='list_price']" position='after'>
+                    <field name="pos" invisible="1"/>
+                    <field name="woo_regular_price"
+                           attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
+                    <field name="woo_sale_price"
+                           attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
+                </xpath>
                 <button name="action_update_quantity_on_hand" position="after">
-                    <button string="Export to Woo Commerce" name="export_woo_product" type="object" attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
+                    <button string="Export to Woo Commerce" name="export_woo_product" type="object"
+                            attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
                 </button>
 
 
-        </field>
+                <xpath expr="//page[@name='general_information']" position='after'>
+
+                </xpath>
+
+
+                <xpath expr="//form[@name='Product Template']/sheet[1]/notebook[1]" position="inside">
+                    <page name="woo_information" string="Woo Commerce Information" sequence="1"
+                          attrs="{'visible': [('pos', '=', '3')]}">
+
+
+                    </page>
+                </xpath>
+
+
+            </field>
         </record>
     </data>
 </odoo>
