@@ -9,9 +9,9 @@ import requests
 import base64
 from datetime import date
 
-
 _logger = logging.getLogger(__name__)
 from datetime import timedelta
+
 
 class InheritChannelPosSettingsWooCommerceConnector(models.Model):
     _inherit = 'channel.pos.settings'
@@ -132,8 +132,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                 'woo_interval_type') else self.woo_interval_type, 'nextcall': fields.Datetime.now()})
         return res
 
-
-
     def write(self, vals):
         print("WRITE")
         if 'woo_interval_number' or 'woo_interval_type' or 'woo_nextcall' in vals:
@@ -143,14 +141,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             print('TIME NOW', datetime.datetime.now())
             # self.woo_nextcall = fields.datetime.now()
             print("======================")
-            if vals.get('woo_interval_number')!= None and  vals.get('woo_interval_number') != 0:
-                print("WOO INTERVAL NUMBER =======================================================================", vals.get('woo_interval_number') !=0 )
+            if vals.get('woo_interval_number') != None and vals.get('woo_interval_number') != 0:
+                print("WOO INTERVAL NUMBER =======================================================================",
+                      vals.get('woo_interval_number') != 0)
                 cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
                 if not cron:
                     cron = self.env['ir.cron'].search([('name', '=', 'Import Woo Data')])
                 print("CRON ", cron)
-                cron.write({'interval_number': vals['woo_interval_number'] if vals.get('woo_interval_number') else self.woo_interval_number,
-                            'interval_type': vals['woo_interval_type'] if vals.get('woo_interval_type') else self.woo_interval_type, 'nextcall': fields.Datetime.now()})
+                cron.write({'interval_number': vals['woo_interval_number'] if vals.get(
+                    'woo_interval_number') else self.woo_interval_number,
+                            'interval_type': vals['woo_interval_type'] if vals.get(
+                                'woo_interval_type') else self.woo_interval_type, 'nextcall': fields.Datetime.now()})
 
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).write(vals)
         return res
@@ -169,7 +170,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # channel.import_woo_products()
             # print("IMPORT ORDERS")
             # channel.import_woo_orders()
-            woo_products = self.env['product.template'].search([('channel_id', '=', channel.id),('master_id', '!=', None)])
+            woo_products = self.env['product.template'].search(
+                [('channel_id', '=', channel.id), ('master_id', '!=', None)])
             for product in woo_products:
                 product.export_woo_product_stock()
 
@@ -254,7 +256,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         message = ''
         if imported_taxes != 0:
-            message = 'Operation successful, ' + str(imported_taxes) + ' taxes were imported from your Woo Coommerce shop into Odoo.'
+            message = 'Operation successful, ' + str(
+                imported_taxes) + ' taxes were imported from your Woo Coommerce shop into Odoo.'
         else:
             message = "All taxes are already up to date."
 
@@ -335,7 +338,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "email": woo_customer['billing']['email'],
                 "phone": woo_customer['billing']['phone'],
                 "type": "invoice",
-                "woo_channel_id": self.id ,
+                "woo_channel_id": self.id,
                 'channel_ids': [[6, False, [self.id]]],
             }
             if woo_customer['billing']['phone']:
@@ -564,7 +567,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         # If yes delete the customer from Odoo too.
         # self.check_deleted_customers(woo_customers_list)
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
-        message = 'Successfully were imported ' + str(imported_customers) + ' customers from your Woo Coommerce shop into Odoo. ' + str(updated_customers) + ' customers were updated.'
+        message = 'Successfully were imported ' + str(
+            imported_customers) + ' customers from your Woo Coommerce shop into Odoo. ' + str(
+            updated_customers) + ' customers were updated.'
         return {
             'name': 'Information',
             'view_type': 'form',
@@ -589,7 +594,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             _logger.info('DUPLICATE CATEGORY', duplicate_category)
             if duplicate_category != 0:
                 odoo_category = self.env['product.category'].search(
-                    [('woo_category_id', '=', int(category['id'])), ('channel_id', '=', self.id)],limit=1)
+                    [('woo_category_id', '=', int(category['id'])), ('channel_id', '=', self.id)], limit=1)
                 # print('ODOO CATEGORY', odoo_category)
                 odoo_category.write({
                     'woo_parent_id': category['parent'],
@@ -648,7 +653,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             attr_name = attribute['name']
             attr_value = attribute['option']
             odoo_attr_names_and_ids = {}
-
 
             # get all attributes names and their ids from Odoo
             for attr in attribute_obj.search([]):
@@ -1236,6 +1240,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_order_number = order['number']
             woo_order_key = order['order_key']
             woo_order_numbers.append(woo_order_number)
+            woo_order_status = order['status']
             billing_info = {}
             shipping_info = {}
             billing_info, shipping_info = self.get_billing_and_shipping_info_from_order(order)
@@ -1252,19 +1257,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 role = customer['role']
 
                 partner_exists = self.env['res.partner'].search_count([('woo_customer_id', '=', order['customer_id']),
-                                                                 ('woo_channel_id', '=', self.id),
-                                                                 ('parent_id', '=', None)])
+                                                                       ('woo_channel_id', '=', self.id),
+                                                                       ('parent_id', '=', None)])
                 if partner_exists != 0:
                     partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
                                                                  ('woo_channel_id', '=', self.id),
-                                                                 ('parent_id', '=', None)],limit=1)
+                                                                 ('parent_id', '=', None)], limit=1)
                 else:
                     personal_customer_info = billing_info
                     print("PERSONAL INFO", personal_customer_info)
                     personal_customer_info['type'] = 'contact'
                     partner_id = self.env['res.partner'].create(personal_customer_info)
-
-
 
                 # # da se smeni
                 # if role != 'customer':
@@ -1299,7 +1302,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     personal_customer_info['type'] = 'contact'
                     partner_id = self.env['res.partner'].create(personal_customer_info)
 
-
             billing_info['parent_id'] = partner_id.id
             shipping_info['parent_id'] = partner_id.id
             date_order = order['date_created'].split("T")
@@ -1313,8 +1315,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'partner_id': partner_id.id,
                 'state': 'draft',
                 'channel_id': self.id,
-                'date_order': date_order
-            }
+                'date_order': date_order,
+                'woo_order_status': woo_order_status}
             print("SALE ORDER INFO", sale_order_info)
 
             order_exists = self.env['sale.order'].search_count([('channel_id', '=', self.id),
