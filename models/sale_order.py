@@ -39,3 +39,6 @@ class InhertSaleOrder(models.Model):
     #     res = super(InhertSaleOrder, self).write(values)
     #     res.action_confirm()
     #     return res
+
+    def export_woo_order_status(self):
+        print("Status exported")
