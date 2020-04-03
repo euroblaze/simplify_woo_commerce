@@ -2,7 +2,7 @@
 from odoo import models, fields, api
 
 
-class InhertSaleOrder(models.Model):
+class InheritSaleOrder(models.Model):
     _inherit = 'sale.order'
 
     woo_order_number = fields.Integer(string='Woo Order Number')
@@ -29,22 +29,15 @@ class InhertSaleOrder(models.Model):
 
     pos = fields.Integer(string='Channel pos', compute=_compute_pos, readonly=True)
 
-    # @api.model
-    # def create(self,vals):
-    #     res = super(InhertSaleOrder,self).create(vals)
-    #     res.action_confirm()
-    #     return res
-
-    # @api.multi
-    # def write(self, values):
-    #     res = super(InhertSaleOrder, self).write(values)
-    #     res.action_confirm()
-    #     return res
-
     def export_woo_order_status(self):
         print("Status exported")
         print(self)
         order = self
         if int(order.channel_id.pos) == 3:
             print("Woo Order")
-
+            woo_id = order.woo_order_id
+            data = {}
+            wcapi = order.channel_id.create_woo_commerce_object()
+            data['status'] = order.woo_order_status
+            # print("Woo Order ID", order.woo_order_id)
+            wcapi.put("orders/%s" % (woo_id), data).json()
