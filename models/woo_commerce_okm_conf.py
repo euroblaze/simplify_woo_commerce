@@ -1241,6 +1241,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_order_key = order['order_key']
             woo_order_numbers.append(woo_order_number)
             woo_order_status = order['status']
+            woo_order_id = order['id']
             billing_info = {}
             shipping_info = {}
             billing_info, shipping_info = self.get_billing_and_shipping_info_from_order(order)
@@ -1309,14 +1310,15 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             date_order = datetime.datetime.strptime(date_order, '%Y-%m-%d %H:%M:%S')
 
             sale_order_info = {
-                # 'woo_channel_id': self.id,
                 'woo_order_number': woo_order_number,
                 'woo_order_key': woo_order_key,
                 'partner_id': partner_id.id,
                 'state': 'draft',
                 'channel_id': self.id,
                 'date_order': date_order,
-                'woo_order_status': woo_order_status}
+                'woo_order_status': woo_order_status,
+                'woo_order_id': woo_order_id,
+            }
             print("SALE ORDER INFO", sale_order_info)
 
             order_exists = self.env['sale.order'].search_count([('channel_id', '=', self.id),

@@ -20,6 +20,7 @@ class InhertSaleOrder(models.Model):
                                         description="Order status. Options: pending, processing, on-hold, completed, "
                                                     "cancelled, refunded, failed and trash. Default is pending"
                                         )
+    woo_order_id = fields.Integer(string="Woo Order ID")
 
     def _compute_pos(self):
         if self.channel_id:
@@ -42,3 +43,8 @@ class InhertSaleOrder(models.Model):
 
     def export_woo_order_status(self):
         print("Status exported")
+        print(self)
+        order = self
+        if int(order.channel_id.pos) == 3:
+            print("Woo Order")
+

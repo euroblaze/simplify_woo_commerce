@@ -7,7 +7,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='channel_id']" position='after'>
                     <field name="pos" invisible="1"/>
-                    <field name="woo_order_status" attrs="{'visible': [('pos', '==', 3)]}"/>
+                    <field name="woo_order_status" attrs="{'invisible': [('pos', '!=', 3)]}"/>
                 </xpath>
 
                 <button name="preview_sale_order" position="before">
