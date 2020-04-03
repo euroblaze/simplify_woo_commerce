@@ -35,12 +35,6 @@
                             attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
                 </button>
 
-
-                <xpath expr="//page[@name='general_information']" position='after'>
-
-                </xpath>
-
-
                 <xpath expr="//form[@name='Product Template']/sheet[1]/notebook[1]" position="inside">
                     <page name="woo_information" string="Woo Commerce Information" sequence="1"
                           attrs="{'visible': [('pos', '=', '3')]}">

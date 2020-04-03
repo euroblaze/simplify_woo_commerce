@@ -6,7 +6,7 @@
     		<field name="inherit_id" ref="sale.view_order_form"/>
     		<field name="arch" type="xml">
         		<xpath expr="//field[@name='channel_id']" position='after'>
-        			<field name="pos" invisible="1"/>
+        		  <field name="pos" invisible="1"/>
         		</xpath>
         	</field>
         </record>

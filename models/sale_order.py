@@ -12,7 +12,7 @@ class InhertSaleOrder(models.Model):
             self.pos = self.channel_id.pos
             print("POS", self.pos)
 
-    pos = fields.Integer(string='Channel pos', compute=_compute_pos)
+    pos = fields.Integer(string='Channel pos', compute=_compute_pos, readonly=True)
 
 
     # @api.model
