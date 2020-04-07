@@ -10,7 +10,7 @@ class WooCreateOrders(http.Controller):
         _logger.info("===================================================WEBHOOK REQUEST ==================================================")
         _logger.info(http.request.jsonrequest)
         _logger.info("==========SELF=========")
-        _loggwe.info(self)
+        _logger.info(self)
         return "Hello World!"
         # new_product = http.request.env['product.template'].sudo().create(kwargs)
        
