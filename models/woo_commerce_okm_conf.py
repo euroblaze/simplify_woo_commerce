@@ -847,9 +847,22 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 i += 1
 
     def find_category(self, woo_category_id):
-        category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),
-                                                        ('channel_id', '=', self.id)])
-        return category.id
+        # print("WOO CATEGORY ID", woo_category_id)
+        if woo_category_id:
+            category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),
+                                                            ('channel_id', '=', self.id)])
+
+            # print("odoo category type", type(category.id))
+            # print("odoo category ID", category.id)
+            if category:
+                return category.id
+            else:
+                category = self.env['product.category'].create({"name": "Uncategorized", "channel_id": self.id,'woo_category_id':woo_category_id})
+                return category.id
+        else:
+            category = self.env['product.category'].create({"name": "Uncategorized","channel_id": self.id})
+            # print("woo category type", type(woo_category_id))
+            return category.id
 
     def check_woo_update(self, woo_date_modified, odoo_date_modified):
         update = False
