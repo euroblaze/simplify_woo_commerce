@@ -706,6 +706,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 # this is image medium (display image of the product)
                 if image_id == 1:
                     image_id = image_id + 1
+                    if self.woo_host not in image['src']:
+                        image['src']= self.woo_host+image['src']
                     image_response = requests.get(image['src'], stream=True, verify=False, timeout=10)
                     if image_response.status_code == 200:
                         image_binary = base64.b64encode(image_response.content)
@@ -713,6 +715,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
                 # images from the gallery
                 else:
+                    if self.woo_host not in image['src']:
+                        image['src']= self.woo_host+image['src']
                     image_response = requests.get(image['src'], stream=True, verify=False, timeout=10)
                     if image_response.status_code == 200:
                         image_binary = base64.b64encode(image_response.content)
@@ -829,9 +833,13 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                         'price_extra': price_extra,
                                         'woo_price': float(woo_variant['price']) if woo_variant['price'] else 0,
                                         'woo_channel_id': self.id,
-                                        'categ_id': self.find_category(woo_category_id)})
+                                        'categ_id':1})
                     image_medium = woo_variant['image']
+
                     if image_medium:
+                        print('IMAGE SRC',image_medium['src'])
+                        if self.woo_host not in image_medium['src']:
+                            image_medium['src'] = self.woo_host + image_medium['src']
                         image_response = requests.get(image_medium['src'], stream=True, verify=False,
                                                       timeout=10)
                         if image_response.status_code == 200:
@@ -851,9 +859,22 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 i += 1
 
     def find_category(self, woo_category_id):
-        category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),
-                                                        ('channel_id', '=', self.id)])
-        return category.id
+        # print("WOO CATEGORY ID", woo_category_id)
+        if woo_category_id:
+            category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),
+                                                            ('channel_id', '=', self.id)])
+
+            # print("odoo category type", type(category.id))
+            # print("odoo category ID", category.id)
+            if category:
+                return category.id
+            else:
+                category = self.env['product.category'].create({"name": "Uncategorized", "channel_id": self.id,'woo_category_id':woo_category_id})
+                return category.id
+        else:
+            category = self.env['product.category'].create({"name": "Uncategorized","channel_id": self.id})
+            # print("woo category type", type(woo_category_id))
+            return category.id
 
     def check_woo_update(self, woo_date_modified, odoo_date_modified):
         update = False
@@ -929,6 +950,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 woo_sale_price = float(woo_product['sale_price'].replace(",", "."))
 
             print("STOCK", woo_product['stock_quantity'])
+            print("category", self.find_category(woo_category_id))
 
             woo_product_info = {
                 'name': woo_product['name'],
@@ -943,7 +965,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,
                 'default_code': str(sku),
                 'woo_sku': sku,
-                'categ_id': self.find_category(woo_category_id) if woo_category_id else None
+                'categ_id': 1
             }
             location = self.env['stock.location'].search(['&', ('name', '=', 'Stock'), ('location_id', '!=', None)],
                                                          limit=1)
@@ -990,7 +1012,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         woo_clone.write(aRelValues)
                         # update product category
                         woo_clone.write({
-                            'categ_id': self.find_category(woo_category_id)
+                            'categ_id': 1
                         })
                         # update product variants (if exist)
                         self.get_woo_product_variants(woo_product, wcapi, woo_clone)
@@ -1021,7 +1043,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         'woo_product_id': woo_product['id'],
                         'channel_id': self.id,
                         'master_id': master_id,
-                        'categ_id': self.find_category(woo_category_id)
+                        'categ_id': 1
                     })
                     if woo_product_info.get('message_follower_ids'):
                         del woo_product_info['message_follower_ids']
@@ -1055,6 +1077,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             else:
                 print("Create master product")
                 # create master product
+                print("woo product info", woo_product_info)
                 master_product = self.env['product.template'].create(woo_product_info)
                 master_id = master_product.id
 
@@ -1071,9 +1094,11 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     'woo_product_id': woo_product['id'],
                     'channel_id': self.id,
                     'master_id': master_id,
-                    'categ_id': self.find_category(woo_category_id)
+                    'categ_id': 1
                 })
                 # print(woo_product_info['message_follower_ids'])
+                # print("DICT", woo_product_info)
+
                 if woo_product_info.get('message_follower_ids'):
                     del woo_product_info['message_follower_ids']
                 # print("DICT", woo_product_info)
@@ -1083,15 +1108,21 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
                 # set images to the clone if the product has images
                 aRelValues = self.get_woo_product_images(woo_product, clone_woo_id)
+                # print("IMAGE VALUES",aRelValues)
                 woo_clone.write(aRelValues)
 
                 # Add variants to the clone if the product has variants
                 self.get_woo_product_variants(woo_product, wcapi, woo_clone)
-                woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
-                woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
+                if odoo_taxes:
+                    woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
+
+                weight = woo_product['weight'] if woo_product['weight'] else 0
+                # woo_clone.write({'weight': weight})
+                if woo_product['weight']:
+                    woo_clone.write({'weight': weight})
 
                 variant_exist = self.env['product.product'].search([('product_tmpl_id', '=', woo_clone.id)])
-                print("variant exist ", len(variant_exist))
+                # print("variant exist ", len(variant_exist))
                 if len(variant_exist) == 1:
                     stock_exist = stock_quant.search_count(
                         [('product_id', '=', variant_exist.id), ('location_id', '=', location.id)])
@@ -1105,7 +1136,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                                        float(qty_available))
 
         # check for deleted products in Woo, If some product is deleted in Woo -> delete the product in Odoo too
-        self.check_deleted_products(woo_product_list)
+        # self.check_deleted_products(woo_product_list)
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
         message = 'Successfully were imported ' + str(
             imported_products) + ' products from your Woo Coommerce shop into Odoo. ' + str(
