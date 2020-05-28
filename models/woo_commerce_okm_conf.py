@@ -8,6 +8,7 @@ import logging
 import requests
 import base64
 from datetime import date
+import threading
 
 
 _logger = logging.getLogger(__name__)
@@ -74,7 +75,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             consumer_secret=self.woo_consumer_secret,
             wp_api="wp-json",
             version=self.woo_commerce_version if self.woo_commerce_version != '-1' else 'wc/v3',
-            timeout=100)
+            timeout=1000)
         print(self.check_woo_url(self.woo_host))
         return wcapi
 
@@ -814,7 +815,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     if woo_product['price'] and woo_variant['price']:
                         price_extra = abs(float(woo_product['price']) - float(woo_variant['price']))
                     woo_category_id = woo_product['categories'][-1]['id']
-                    print("PRODUCT category", woo_category_id)
+                    print("VARIANT category", woo_category_id)
                     odoo_variant.write({'woo_variant_id': woo_variant['id'],
                                         'default_code': variants_sku[i],
                                         'active': status,
@@ -847,9 +848,22 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 i += 1
 
     def find_category(self, woo_category_id):
-        category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),
-                                                        ('channel_id', '=', self.id)])
-        return category.id
+        print("WOO CATEGORY ID", woo_category_id)
+        if woo_category_id:
+            category = self.env['product.category'].search([('woo_category_id', '=', woo_category_id),
+                                                            ('channel_id', '=', self.id)])
+
+            print("odoo category type", type(category.id))
+            print("odoo category ID", category.id)
+            if category:
+                return category.id
+            else:
+                category = self.env['product.category'].create({"name": "Uncategorized", "channel_id": self.id,'woo_category_id':woo_category_id})
+                return category.id
+        else:
+            category = self.env['product.category'].create({"name": "Uncategorized","channel_id": self.id})
+            print("woo category type", type(woo_category_id))
+            return category.id
 
     def check_woo_update(self, woo_date_modified, odoo_date_modified):
         update = False
@@ -914,7 +928,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             master_product_exists = product_template.search([('default_code', '=', sku), ('master_id', '=', None)],
                                                             limit=1)
             product_categories = woo_product['categories']
-            print("product categories", product_categories)
+            print("product categories - FIRST PRINT", product_categories)
             woo_category_id = woo_product['categories'][0]['id']
             # parse the product basic info
             print(woo_product['price'])
@@ -939,7 +953,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,
                 'default_code': str(sku),
                 'woo_sku': sku,
-                'categ_id': self.find_category(woo_category_id) if woo_category_id else None
+                'categ_id': self.find_category(woo_category_id)
             }
             location = self.env['stock.location'].search(['&', ('name', '=', 'Stock'), ('location_id', '!=', None)],
                                                          limit=1)
@@ -1122,19 +1136,34 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         order_line_ids = []
 
         for line in order_lines:
+            _logger.info(line['product_id'])
+            _logger.info(type(line['product_id']))
 
-            product = self.env['product.template'].search([('woo_product_id', '=', line['product_id']),
+            product = self.env['product.template'].search([('woo_product_id', '=', int(line['product_id'])),
                                                            ('master_id', '!=', None),
                                                            ('channel_id', '=', self.id)])
-            print("PRODUCT", product)
-            product_id = None
-            if line['variation_id']:
-                product_id = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
-                                                                 ('woo_channel_id', '=', self.id),
-                                                                 ('product_tmpl_id', '=', product.id)])
-
+            _logger.info(product)
+            _logger.info(type(product))
+            # product_id = None
+            # if line['variation_id']:
+            #     product_id = self.env['product.product'].search([('woo_variant_id', '=', int(line['variation_id'])),
+            #                                                      ('woo_channel_id', '=', self.id),
+            #                                                      ('product_tmpl_id', '=', product.id)])
+            
+            # else:
+            if not product:
+                product_id = self.env['product.product'].search([('product_tmpl_id', '=', 230)])
+                with open('/tmp/missing_products_in_order.txt','a') as f:
+                    f.write(str(line['product_id'])+ ' : ' + str(sale_order_id) + "\n")
+            
             else:
+                if len(product)>1:
+                    product = product[0]
                 product_id = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
+                if len(product_id) > 1:
+                    product_id = product_id[0]
+
+
 
             # check if order line exist
             order_line_exist = self.env['sale.order.line'].search_count([('order_id', '=', sale_order_id),
@@ -1147,10 +1176,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 print("ODOO TAX", odoo_tax)
                 odoo_taxes += odoo_tax
             print('ODOO TAXES', odoo_taxes)
+            print(product.name,product_id.id)
             order_line_info = {
                 'product_id': product_id.id,
                 'product_uom_qty': line['quantity'],
                 'name': '[' + str(product_id.default_code) + '] ' + str(product_id.product_tmpl_id.name),
+                # 'name': '[ace] ace',
                 'qty_invoiced': line['quantity'],
                 'price_unit': float(line['subtotal']) / float(line['quantity']),
                 'tax_id': [(6, 0, odoo_taxes)],
@@ -1165,7 +1196,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 order_line_ids.append(order_line.id)
             else:
                 # order line does not exist -> create
-                print("ORDER LINE INFO", order_line_info)
+                _logger.info(order_line_info)
                 order_line = self.env['sale.order.line'].create(order_line_info)
                 print(order_line)
                 order_line_ids.append(order_line.id)
@@ -1249,7 +1280,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             partner_id = 0
             if order.get('customer_id') != 0:
                 customer = wcapi.get("customers/%s" % (order['customer_id'])).json()
-                role = customer['role']
+                # role = customer['role']
 
                 partner_exists = self.env['res.partner'].search_count([('woo_customer_id', '=', order['customer_id']),
                                                                  ('woo_channel_id', '=', self.id),
@@ -1463,9 +1494,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
     def import_woo_orders_on_clink(self):
         # This method usage is in case that some product/customer from the orders was not imported or updated previous
-        self.import_woo_taxes()
-        self.import_woo_products()
-        self.import_woo_customers()
+        # self.import_woo_taxes()
+        # self.import_woo_products()
+        # self.import_woo_customers()
         self.import_woo_orders()
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
         message = 'Orders successfully imported!'
@@ -1480,3 +1511,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             'target': 'new',
             'context': {'default_message': message},
         }
+    
+
+
