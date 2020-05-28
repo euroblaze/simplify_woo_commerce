@@ -1136,14 +1136,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         order_line_ids = []
 
         for line in order_lines:
-            _logger.info(line['product_id'])
-            _logger.info(type(line['product_id']))
+
 
             product = self.env['product.template'].search([('woo_product_id', '=', int(line['product_id'])),
                                                            ('master_id', '!=', None),
                                                            ('channel_id', '=', self.id)])
-            _logger.info(product)
-            _logger.info(type(product))
+
             # product_id = None
             # if line['variation_id']:
             #     product_id = self.env['product.product'].search([('woo_variant_id', '=', int(line['variation_id'])),
@@ -1173,10 +1171,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             for tax in line['taxes']:
                 woo_tax_id = tax['id']
                 odoo_tax = [tax.odoo_tax.id for tax in self.woo_taxes_map if tax.woo_tax.id == woo_tax_id]
-                print("ODOO TAX", odoo_tax)
                 odoo_taxes += odoo_tax
-            print('ODOO TAXES', odoo_taxes)
-            print(product.name,product_id.id)
             order_line_info = {
                 'product_id': product_id.id,
                 'product_uom_qty': line['quantity'],
@@ -1196,9 +1191,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 order_line_ids.append(order_line.id)
             else:
                 # order line does not exist -> create
-                _logger.info(order_line_info)
+
                 order_line = self.env['sale.order.line'].create(order_line_info)
-                print(order_line)
+
                 order_line_ids.append(order_line.id)
 
         return order_line_ids
