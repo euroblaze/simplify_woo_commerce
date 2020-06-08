@@ -48,7 +48,13 @@
                             </group>
                         </group>
                             <group>
-                                <h6> <b>Additional values for color:</b></h6>
+                                <field name="woo_remapped_values">
+                                      <tree>
+                                        <field name="original_value_id"/>
+                                        <field name="remapped_value_ids"/>
+                                    </tree>
+                                </field>
+
                             </group>
                     </page>
                 </xpath>
