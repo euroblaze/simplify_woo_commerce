@@ -48,10 +48,10 @@
                             </group>
                         </group>
                             <group>
-                                <field name="woo_remapped_values">
+                                <field name="woo_remapped_values" >
                                       <tree>
                                         <field name="original_value_id"/>
-                                        <field name="remapped_value_ids"/>
+                                        <field name="remapped_value_ids" widget="many2many_tags" />
                                     </tree>
                                 </field>
 

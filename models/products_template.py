@@ -60,7 +60,7 @@ class InhertProductTemplate(models.Model):
                                        description="Choose type of Product export: Full Product- with all informtion or Without Images and text"
     )
     #Field for remapped values
-    woo_remapped_values = fields.One2many('product.attribute.remap', 'channel_id', string="Additional  values for colors")
+    woo_remapped_values = fields.One2many('product.attribute.remap', 'product_tmpl_id', string="Additional  values for colors")
 
     def _compute_pos(self):
         if self.channel_id:
