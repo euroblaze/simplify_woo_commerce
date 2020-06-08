@@ -47,12 +47,11 @@
 
                             </group>
                         </group>
-
-
+                            <group>
+                                <h6> <b>Additional values for color:</b></h6>
+                            </group>
                     </page>
                 </xpath>
-
-
             </field>
         </record>
     </data>
