@@ -59,6 +59,9 @@ class InhertProductTemplate(models.Model):
                                        default='compact',
                                        description="Choose type of Product export: Full Product- with all informtion or Without Images and text"
     )
+    #Field for remapped values
+    woo_remapped_values = fields.One2many('product.attribute.remap', 'channel_id', string="Products",
+                                   domain=[('woo_product_id', '!=', None)])
 
     def _compute_pos(self):
         if self.channel_id:
