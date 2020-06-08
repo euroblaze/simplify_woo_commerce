@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_woo_taxes_map,simplify_woo_commerce.tax internal user,model_woo_taxes_map,base.group_user,1,1,1,1
 access_woo_taxes,simplify_woo.tax internal user,model_woo_taxes,base.group_user,1,1,1,1
 access_stock_quant__base_user,stock.quant base user,model_stock_quant,base.group_user,1,1,1,1
+access_product_attribute_remap_base_user,product_attribute_remap internal user,model_product_attribute_remap,base.group_user,1,1,1,1
