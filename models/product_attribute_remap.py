@@ -14,3 +14,4 @@ class ProductAttributeReMap(models.Model):
 # i prethodno vo
 #
 #
+
