@@ -9,3 +9,4 @@ class InhertProductAttribute(models.Model):
 class InhertProductAttributeValue(models.Model):
     _inherit = 'product.attribute.value'
     woo_attribute_value_id = fields.Integer(string='Woo Attribute Value ID')
+    value_parent_id = fields.Many2one('product.attribute.value', string="Parent Value")

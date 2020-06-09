@@ -44,7 +44,6 @@
                                 <field name="woo_export_type"/>
                             </group>
                             <group>
-
                             </group>
                         </group>
                             <group>
@@ -54,7 +53,6 @@
                                         <field name="remapped_value_ids" widget="many2many_tags" />
                                     </tree>
                                 </field>
-
                             </group>
                     </page>
                 </xpath>
