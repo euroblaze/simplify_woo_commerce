@@ -6,8 +6,8 @@
             <field name="model">product.attribute.value</field>
             <field name="inherit_id" ref="product.variants_tree_view"/>
             <field name="arch" type="xml">
-                <xpath expr="//tree[1]/field[@name='name']" position="after">
-                    <field name="value_parent_id"/>
+                <xpath expr="//tree[1]/field[@name='name']" position="after" context="{'attribute_id':attribute_id}">
+                    <field name="value_parent_id" />
                 </xpath>
             </field>
         </record>

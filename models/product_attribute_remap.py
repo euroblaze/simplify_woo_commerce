@@ -12,6 +12,6 @@ class ProductAttributeReMap(models.Model):
 # original_value_id moze da se zeme od produktot - so nekoj filter na imeto da sodzi
 # color ili farbe ili sto ja znam
 # i prethodno vo
-#
-#
+# za domen kje gi stavam tie sto imaat parent (znaci deka se remapped)
+#ili ednostavno da si kreira novi
 
