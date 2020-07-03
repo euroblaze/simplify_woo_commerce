@@ -2,6 +2,9 @@
 from odoo import models, fields, api
 
 
+def intersection(lst1, lst2):
+    return [item for item in lst1 if item in lst2]
+
 class ProductAttributeReMap(models.Model):
     _name = 'product.attribute.remap'
 
@@ -11,6 +14,14 @@ class ProductAttributeReMap(models.Model):
     @api.onchange('product_tmpl_id')
     def _onchange_attribute(self):
         print("self",  self.__dict__)
+        print(self.product_tmpl_id.attribute_line_ids.mapped("attribute_id").mapped("id"))
+        color_attributes = self.env["product.attribute"].search([("name", 'in', ['Color','color',"farbe",'Farbe'])]).mapped("id")
+        print('Search',color_attributes)
+
+        # return {
+        #     'domain': {
+        #         'original_value_id': [('channel_id', 'in', self._context.get('channel_id'))]
+        #     }}
 
     original_value_id = fields.Many2one('product.attribute.value', string='Original Value')
     remapped_value_ids = fields.Many2many('product.attribute.value', string='Remapped Values')
