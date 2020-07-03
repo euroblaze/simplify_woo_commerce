@@ -13,15 +13,15 @@ class ProductAttributeReMap(models.Model):
 
     @api.onchange('product_tmpl_id')
     def _onchange_attribute(self):
-        print("self",  self.__dict__)
-        print(self.product_tmpl_id.attribute_line_ids.mapped("attribute_id").mapped("id"))
-        color_attributes = self.env["product.attribute"].search([("name", 'in', ['Color','color',"farbe",'Farbe'])]).mapped("id")
-        print('Search',color_attributes)
+        product_attributes = self.product_tmpl_id.attribute_line_ids.mapped("attribute_id").mapped("id")
 
-        # return {
-        #     'domain': {
-        #         'original_value_id': [('channel_id', 'in', self._context.get('channel_id'))]
-        #     }}
+        all_color_attributes = self.env["product.attribute"].search([("name", 'in', ['Color','color',"farbe",'Farbe'])]).mapped("id")
+
+        color_attributes = intersection(product_attributes, all_color_attributes)
+        return {
+            'domain': {
+                'original_value_id': [('attribute_id', 'in',color_attributes )]
+            }}
 
     original_value_id = fields.Many2one('product.attribute.value', string='Original Value')
     remapped_value_ids = fields.Many2many('product.attribute.value', string='Remapped Values')
