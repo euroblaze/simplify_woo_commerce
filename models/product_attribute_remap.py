@@ -14,13 +14,13 @@ class ProductAttributeReMap(models.Model):
     @api.onchange('product_tmpl_id')
     def _onchange_attribute(self):
         product_attributes = self.product_tmpl_id.attribute_line_ids.mapped("attribute_id").mapped("id")
-
+        product_values = self.product_tmpl_id.attribute_line_ids.mapped("value_ids").mapped("id")
         all_color_attributes = self.env["product.attribute"].search([("name", 'in', ['Color','color',"farbe",'Farbe'])]).mapped("id")
 
         color_attributes = intersection(product_attributes, all_color_attributes)
         return {
             'domain': {
-                'original_value_id': [('attribute_id', 'in',color_attributes )]
+                'original_value_id': [('attribute_id', 'in',color_attributes),('id', 'in', product_values)]
             }}
 
     original_value_id = fields.Many2one('product.attribute.value', string='Original Value')
