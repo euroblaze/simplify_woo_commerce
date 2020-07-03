@@ -35,6 +35,23 @@
                             attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
                 </button>
 
+                <xpath expr="//page[@name='variants']" position="replace">
+                     <page name="variants" string="Variants" groups="product.group_product_variant">
+                    <field name="attribute_line_ids" widget="one2many_list" context="{'show_attribute': False}">
+                        <tree string="Variants" editable="bottom">
+                            <field name="attribute_id"/>
+                            <field name="value_ids" widget="many2many_tags" options="{'no_create_edit': True}" domain="[('attribute_id', '=', attribute_id), ('value_parent_id', '=', None)]" context="{'default_attribute_id': attribute_id}"/>
+                        </tree>
+                    </field>
+                        <p class="oe_grey">
+                        <strong>Warning</strong>: adding or deleting attributes
+                        will delete and recreate existing variants and lead
+                        to the loss of their possible customizations.
+                    </p>
+                </page>
+
+                </xpath>
+
                 <xpath expr="//form[@name='Product Template']/sheet[1]/notebook[1]" position="inside">
                     <page name="woo_information" string="Woo Commerce Information" sequence="1"
                           attrs="{'visible': [('pos', '=', '3')]}">
