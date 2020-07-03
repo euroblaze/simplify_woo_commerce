@@ -47,7 +47,7 @@
                             </group>
                         </group>
                             <group>
-                                <field name="woo_remapped_values" >
+                                <field name="woo_remapped_values"  context="{'product_id':id}" >
 <!--                                      <tree editable="bottom">-->
                                     <tree context="{'product_id':id}">
                                         <field name="original_value_id"/>
