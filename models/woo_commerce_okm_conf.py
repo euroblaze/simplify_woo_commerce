@@ -645,6 +645,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # get all attributes from the product variant
         attributes = woo_variant['attributes']
+        print("Variant information", woo_variant)
         print("Attributes", attributes)
         for attribute in attributes:
             attr_id = ''
@@ -920,6 +921,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_categories += categories_per_page
 
         woo_product_list = []
+        print("Color attributes term")
+        print(wcapi.get("products/attributes/1/terms").json())
+
 
         # before product import, import all categories
         # print("=========================== CATEGORIES =================================================")

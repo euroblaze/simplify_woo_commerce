@@ -5,9 +5,13 @@ from odoo import models, fields, api
 class ProductAttributeReMap(models.Model):
     _name = 'product.attribute.remap'
 
+    @api.onchange('product_tmpl_id')
+    def _onchange_attribute(self):
+        print("self",  self.__dict__)
+
     original_value_id = fields.Many2one('product.attribute.value', string='Original Value')
     remapped_value_ids = fields.Many2many('product.attribute.value', string='Remapped Values')
-    product_tmpl_id = fields.Many2one('product.template', string='Product Template')
+    product_tmpl_id = fields.Many2one('product.template', string='Product', readonly=True)
 
 # original_value_id moze da se zeme od produktot - so nekoj filter na imeto da sodzi
 # color ili farbe ili sto ja znam

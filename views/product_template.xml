@@ -48,7 +48,8 @@
                         </group>
                             <group>
                                 <field name="woo_remapped_values" >
-                                      <tree>
+<!--                                      <tree editable="bottom">-->
+                                    <tree context="{'product_id':id}">
                                         <field name="original_value_id"/>
                                         <field name="remapped_value_ids" widget="many2many_tags" />
                                     </tree>
