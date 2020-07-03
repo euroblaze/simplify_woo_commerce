@@ -21,7 +21,17 @@ class ProductAttributeReMap(models.Model):
         return {
             'domain': {
                 'original_value_id': [('attribute_id', 'in',color_attributes),('id', 'in', product_values)]
+
             }}
+
+    @api.onchange('original_value_id')
+    def _onchange_original_value(self):
+        if self._prefetch.get('product.attribute.value'):
+            parent= self._prefetch.get('product.attribute.value').pop()
+            return {
+                'domain': {
+                    'remapped_value_ids': [('value_parent_id', '=', parent)]
+                }}
 
     original_value_id = fields.Many2one('product.attribute.value', string='Original Value')
     remapped_value_ids = fields.Many2many('product.attribute.value', string='Remapped Values')
