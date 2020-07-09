@@ -156,20 +156,20 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         res = super(InheritChannelPosSettingsWooCommerceConnector, self).write(vals)
         return res
 
-    # Method for automaion import data from Woo Commerce
+    # Method for automaion import data from Woo Commerce and export stock to WC
     def import_woo_data(self):
         print('Cron')
         woo_channels = self.env['channel.pos.settings'].search([('pos', '=', 3)])
         for channel in woo_channels:
             # print("SELF", channel)
             # print("IMPORT TAXES")
-            # channel.import_woo_taxes()
+            channel.import_woo_taxes()
             # print("IMPORT CUSTOMERS")
-            # channel.import_woo_customers()
+            channel.import_woo_customers()
             # print("IMPORT PRODUCTS")
-            # channel.import_woo_products()
+            channel.import_woo_products()
             # print("IMPORT ORDERS")
-            # channel.import_woo_orders()
+            channel.import_woo_orders()
             woo_products = self.env['product.template'].search(
                 [('channel_id', '=', channel.id), ('master_id', '!=', None)])
             for product in woo_products:
@@ -1499,6 +1499,239 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
         # check if some order was deleted
         self.check_woo_deleted_orders(woo_order_numbers)
+
+    def import_woo_webhooks_orders(self,woo_orders):
+        wcapi = self.create_woo_commerce_object()  # connect to Woo
+        woo_order_numbers = []
+        imported_orders = 0
+        updated_orders = 0
+        for order in woo_orders:
+            print(order)
+            woo_order_number = order['number']
+            woo_order_key = order['order_key']
+            woo_order_numbers.append(woo_order_number)
+            woo_order_status = order['status']
+            woo_order_id = order['id']
+            billing_info = {}
+            shipping_info = {}
+            billing_info, shipping_info = self.get_billing_and_shipping_info_from_order(order)
+            print("============ BILLING INFO ", billing_info)
+            print("============ Shipping INFO", shipping_info)
+            if billing_info.get('message_follower_ids'):
+                del billing_info['message_follower_ids']
+            if shipping_info.get('message_follower_ids'):
+                del shipping_info['message_follower_ids']
+            personal_customer_info = {}
+            partner_id = 0
+            if order.get('customer_id') != 0:
+                customer = wcapi.get("customers/%s" % (order['customer_id'])).json()
+                role = customer['role']
+
+                partner_exists = self.env['res.partner'].search_count([('woo_customer_id', '=', order['customer_id']),
+                                                                       ('woo_channel_id', '=', self.id),
+                                                                       ('parent_id', '=', None)])
+                if partner_exists != 0:
+                    partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                                 ('woo_channel_id', '=', self.id),
+                                                                 ('parent_id', '=', None)], limit=1)
+                else:
+                    personal_customer_info = billing_info
+                    print("PERSONAL INFO", personal_customer_info)
+                    personal_customer_info['type'] = 'contact'
+                    partner_id = self.env['res.partner'].create(personal_customer_info)
+
+                # # da se smeni
+                # if role != 'customer':
+                #     personal_customer_info = billing_info
+                #     print("PERSONAL INFO", personal_customer_info)
+                #     personal_customer_info['type'] = 'contact'
+                #     partner_id = self.env['res.partner'].create(personal_customer_info)
+                # else:
+                #     partner_id = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                #                                                  ('woo_channel_id', '=', self.id),
+                #                                                  ('parent_id', '=', None)])
+            else:
+                if billing_info.get('message_follower_ids'):
+                    del billing_info['message_follower_ids']
+                if billing_info.get('image'):
+                    del billing_info['image']
+                if billing_info.get('image_medium'):
+                    del billing_info['image_medium']
+                if billing_info.get('image_small'):
+                    del billing_info['image_small']
+
+                partner_exists = self.env['res.partner'].search_count([('email', '=', order['billing']['email']),
+                                                                       ('woo_channel_id', '=', self.id),
+                                                                       ('parent_id', '=', None)])
+                if partner_exists != 0:
+                    partner_id = self.env['res.partner'].search([('email', '=', order['billing']['email']),
+                                                                 ('woo_channel_id', '=', self.id),
+                                                                 ('parent_id', '=', None)], limit=1)
+                else:
+                    personal_customer_info = billing_info
+                    print("PERSONAL INFO", personal_customer_info)
+                    personal_customer_info['type'] = 'contact'
+                    partner_id = self.env['res.partner'].create(personal_customer_info)
+
+            billing_info['parent_id'] = partner_id.id
+            shipping_info['parent_id'] = partner_id.id
+            date_order = order['date_created'].split("T")
+            date_order = date_order[0] + " " + date_order[1]
+            date_order = datetime.datetime.strptime(date_order, '%Y-%m-%d %H:%M:%S')
+
+            sale_order_info = {
+                'woo_order_number': woo_order_number,
+                'woo_order_key': woo_order_key,
+                'partner_id': partner_id.id,
+                'state': 'draft',
+                'channel_id': self.id,
+                'date_order': date_order,
+                'woo_order_status': woo_order_status,
+                'woo_order_id': woo_order_id,
+            }
+            print("SALE ORDER INFO", sale_order_info)
+
+            order_exists = self.env['sale.order'].search_count([('channel_id', '=', self.id),
+                                                                ('woo_order_number', '=', woo_order_number),
+                                                                ('woo_order_key', '=', woo_order_key)])
+            order_lines = order['line_items']
+
+            if order_exists != 0:
+                # order exist => check if the order need to be updated
+                print("Order already exist")
+                sale_order = self.env['sale.order'].search([('channel_id', '=', self.id),
+                                                            ('woo_order_number', '=', woo_order_number),
+                                                            ('woo_order_key', '=', woo_order_key)])
+                # if order exist check if need to be updated
+                update = False
+                if order['date_modified']:
+                    update = self.check_woo_update(order['date_modified'], sale_order.write_date)
+
+                if update:
+                    updated_orders += 1
+                    # if the order was updated in Woo -> Update the order in Odoo
+                    # check if billing info for the customer exist
+                    billing_record_exist = self.env['res.partner'].search_count(
+                        [('woo_customer_id', '=', order['customer_id']),
+                         ('woo_channel_id', '=', self.id),
+                         ('parent_id', '=', partner_id.id),
+                         ('type', '=', 'invoice')])
+                    billing_record = 0
+                    # if billing info does not exist -> create
+                    if billing_record_exist == 0:
+                        print("BILLING RECORD ==============", billing_record_exist)
+                        billing_record = self.env['res.partner'].create(billing_info)
+                    # else if billing info exist -> update in case of same changes
+                    else:
+                        billing_record = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                                         ('woo_channel_id', '=', self.id),
+                                                                         ('parent_id', '=', partner_id.id),
+                                                                         ('type', '=', 'invoice')])
+                        print("Billing info", billing_info)
+                        billing_record.write(billing_info)
+
+                    # check if shipping info for the customer exist
+                    shipping_record_exist = self.env['res.partner'].search_count(
+                        [('woo_customer_id', '=', order['customer_id']),
+                         ('woo_channel_id', '=', self.id),
+                         ('parent_id', '=', partner_id.id),
+                         ('type', '=', 'delivery')])
+                    shipping_record = 0
+                    # if shipping info does not exist -> create
+                    if shipping_record_exist == 0:
+                        shipping_record = self.env['res.partner'].create(shipping_info)
+                    # else if shipping info exist -> update in case of same changes
+                    else:
+                        shipping_record = self.env['res.partner'].search(
+                            [('woo_customer_id', '=', order['customer_id']),
+                             ('woo_channel_id', '=', self.id),
+                             ('parent_id', '=', partner_id.id),
+                             ('type', '=', 'delivery')])
+                        shipping_record.write(shipping_info)
+
+                    print("Billing record", billing_record)
+                    print("Shipping record", shipping_record)
+                    sale_order_info['partner_invoice_id'] = billing_record.id
+                    sale_order_info['partner_shipping_id'] = shipping_record.id
+                    payment_term = self.env['account.payment.term'].search([('name', '=', '30 Net Days')])
+                    sale_order_info['payment_term_id'] = payment_term.id
+                    # sale_order_info['state']='sale'
+                    # update order info
+                    print('Sale order info', sale_order_info)
+                    sale_order.write(sale_order_info)
+                    order_lines = self.create_woo_order_lines(order_lines, sale_order.id, True)
+                    # add order lines
+                    sale_order.write({'order_line': [(6, 0, order_lines)]})
+            else:  # create order
+                imported_orders += 1
+                print("Create order")
+                # check if billing info for the customer exist
+                billing_record_exist = self.env['res.partner'].search_count(
+                    [('woo_customer_id', '=', order['customer_id']),
+                     ('woo_channel_id', '=', self.id),
+                     ('parent_id', '=', partner_id.id),
+                     ('type', '=', 'invoice')])
+                billing_record = 0
+                # if billing info does not exist -> create
+                if billing_record_exist == 0:
+                    print("Billing record exisst ============", billing_record_exist)
+                    print("BILLING INFO", billing_info)
+                    if billing_info.get('message_follower_ids'):
+                        del billing_info['message_follower_ids']
+                    if billing_info.get('image'):
+                        del billing_info['image']
+                    if billing_info.get('image_medium'):
+                        del billing_info['image_medium']
+                    if billing_info.get('image_small'):
+                        del billing_info['image_small']
+
+                    billing_record = self.env['res.partner'].create(billing_info)
+                # else if billing info exist -> update in case of same changes
+                else:
+                    billing_record = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                                     ('woo_channel_id', '=', self.id),
+                                                                     ('parent_id', '=', partner_id.id),
+                                                                     ('type', '=', 'invoice')])
+                    billing_record.write(billing_info)
+                # check if shipping info for the customer exist
+                shipping_record_exist = self.env['res.partner'].search_count(
+                    [('woo_customer_id', '=', order['customer_id']),
+                     ('woo_channel_id', '=', self.id),
+                     ('parent_id', '=', partner_id.id),
+                     ('type', '=', 'delivery')])
+                shipping_record = 0
+                # if shipping info does not exist -> create
+                if shipping_record_exist == 0:
+                    if shipping_info.get('message_follower_ids'):
+                        del shipping_info['message_follower_ids']
+                    if shipping_info.get('image'):
+                        del shipping_info['image']
+                    if shipping_info.get('image_medium'):
+                        del shipping_info['image_medium']
+                    if shipping_info.get('image_small'):
+                        del shipping_info['image_small']
+                    shipping_record = self.env['res.partner'].create(shipping_info)
+                # else if shipping info exist -> update in case of same changes
+                else:
+                    shipping_record = self.env['res.partner'].search([('woo_customer_id', '=', order['customer_id']),
+                                                                      ('woo_channel_id', '=', self.id),
+                                                                      ('parent_id', '=', partner_id.id),
+                                                                      ('type', '=', 'delivery')])
+                    shipping_record.write(shipping_info)
+                print("Billing record", billing_record)
+                print("Shipping record", shipping_record)
+                sale_order_info['partner_invoice_id'] = billing_record.id
+                sale_order_info['partner_shipping_id'] = shipping_record.id
+                payment_term = self.env['account.payment.term'].search([('name', '=', '30 Net Days')])
+                sale_order_info['payment_term_id'] = payment_term.id
+                # create order
+                print('Sale order info', sale_order_info)
+                sale_order = self.env['sale.order'].create(sale_order_info)
+                order_lines = self.create_woo_order_lines(order_lines, sale_order.id, False)
+                # add order lines
+                sale_order.write({'order_line': [(6, 0, order_lines)]})
+                sale_order.action_confirm()
+
 
     def import_woo_orders_on_clink(self):
         # This method usage is in case that some product/customer from the orders was not imported or updated previous
