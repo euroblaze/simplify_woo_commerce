@@ -53,7 +53,6 @@ class ChannelWooTaxes(models.Model):
     woo_channel_id = fields.Many2one('channel.pos.settings', string='Channel Instance ID', default=_print_self, readonly=True)
 
     #Overwrite on create to add log while creating map record
-    @api.multi
     def create(self,vals):
         # print(vals)
         result = super(ChannelWooTaxes, self).create(vals)
@@ -74,7 +73,6 @@ class ChannelWooTaxes(models.Model):
         return result
 
     #Overwrite on delete to add log when map record is deleted
-    @api.multi
     def unlink(self):
         logs = []
         logs.append((0, 0, {'date': self.create_date,
