@@ -834,7 +834,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                         'price_extra': price_extra,
                                         'woo_price': float(woo_variant['price']) if woo_variant['price'] else 0,
                                         'woo_channel_id': self.id,
-                                        'categ_id':1})
+                                        'categ_id':self.find_category(woo_category_id) if self.find_category(woo_category_id) else 1})
                     image_medium = woo_variant['image']
 
                     if image_medium:
@@ -969,7 +969,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 'price': float(woo_product['price'].replace(",", ".")) if woo_product['price'] != '' else 0,
                 'default_code': str(sku),
                 'woo_sku': sku,
-                'categ_id': 1
+                'categ_id': self.find_category(woo_category_id) if self.find_category(woo_category_id) else 1
             }
             location = self.env['stock.location'].search(['&', ('name', '=', 'Stock'), ('location_id', '!=', None)],
                                                          limit=1)
@@ -1016,7 +1016,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         woo_clone.write(aRelValues)
                         # update product category
                         woo_clone.write({
-                            'categ_id': 1
+                            'categ_id': self.find_category(woo_category_id) if self.find_category(woo_category_id) else 1
                         })
                         # update product variants (if exist)
                         self.get_woo_product_variants(woo_product, wcapi, woo_clone)
@@ -1047,7 +1047,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         'woo_product_id': woo_product['id'],
                         'channel_id': self.id,
                         'master_id': master_id,
-                        'categ_id': 1
+                        'categ_id': self.find_category(woo_category_id) if self.find_category(woo_category_id) else 1
                     })
                     if woo_product_info.get('message_follower_ids'):
                         del woo_product_info['message_follower_ids']
@@ -1098,7 +1098,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     'woo_product_id': woo_product['id'],
                     'channel_id': self.id,
                     'master_id': master_id,
-                    'categ_id': 1
+                    'categ_id': self.find_category(woo_category_id) if self.find_category(woo_category_id) else 1
                 })
                 # print(woo_product_info['message_follower_ids'])
                 # print("DICT", woo_product_info)
@@ -1167,13 +1167,24 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                            ('channel_id', '=', self.id)])
             print("PRODUCT", product)
             product_id = None
-            if line['variation_id']:
-                product_id = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
-                                                                 ('woo_channel_id', '=', self.id),
-                                                                 ('product_tmpl_id', '=', product.id)])
+            # if line['variation_id']:
+            #     product_id = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
+            #                                                      ('woo_channel_id', '=', self.id),
+            #                                                      ('product_tmpl_id', '=', product.id)])
+            #
+            # else:
+            #     product_id = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
+            if not product:
+                product_id = self.env['product.product'].search([('product_tmpl_id', '=', 230)])
+                with open('/tmp/missing_products_in_order.txt', 'a') as f:
+                    f.write(str(line['product_id']) + ' : ' + str(sale_order_id) + "\n")
 
             else:
+                if len(product) > 1:
+                    product = product[0]
                 product_id = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
+                if len(product_id) > 1:
+                    product_id = product_id[0]
 
             # check if order line exist
             order_line_exist = self.env['sale.order.line'].search_count([('order_id', '=', sale_order_id),
