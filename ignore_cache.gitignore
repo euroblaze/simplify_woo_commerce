@@ -1,0 +1,5 @@
+#ignore pycharm cahes
+models/__pycache__/
+controllers/__pycache__/
+*.pyc
+*.pyo
