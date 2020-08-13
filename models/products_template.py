@@ -63,9 +63,8 @@ class InhertProductTemplate(models.Model):
     woo_remapped_values = fields.One2many('product.attribute.remap', 'product_tmpl_id', string="Additional  values for colors")
 
     def _compute_pos(self):
-        if self.channel_id:
+        if len(self) == 1 and self.channel_id:
             self.pos = self.channel_id.pos
-            print("POS", self.pos)
 
     pos = fields.Integer(string='Channel pos', compute=_compute_pos)
 
