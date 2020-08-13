@@ -64,7 +64,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         if "http" in woo_host:
             return woo_host
         else:
-            return "http://" + woo_host
+            return "https://" + woo_host
 
     # Method for connection with Woo Commerce
     def create_woo_commerce_object(self):
