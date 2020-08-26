@@ -64,7 +64,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
         if "http" in woo_host:
             return woo_host
         else:
-            return "http://" + woo_host
+            return "https://" + woo_host
 
     # Method for connection with Woo Commerce
     def create_woo_commerce_object(self):
@@ -333,7 +333,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "street2": woo_customer['billing']['address_2'],
                 "city": woo_customer['billing']['city'],
                 "zip": woo_customer['billing']['postcode'],
-                "country": self.get_country_id(woo_customer['billing']['country']),
+                "country_id": self.get_country_id(woo_customer['billing']['country']),
                 # "state": woo_customer['billing']['state'],
                 "email": woo_customer['billing']['email'],
                 "phone": woo_customer['billing']['phone'],
@@ -356,7 +356,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "street2": woo_customer['shipping']['address_2'],
                 "city": woo_customer['shipping']['city'],
                 "zip": woo_customer['shipping']['postcode'],
-                "country": self.get_country_id(woo_customer['shipping']['country']),
+                "country_id": self.get_country_id(woo_customer['shipping']['country']),
                 # "state": woo_customer['shipping']['state'],
                 "type": "delivery",
                 "woo_channel_id": self.id,
@@ -712,7 +712,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     image_response = requests.get(image['src'], stream=True, verify=False, timeout=10)
                     if image_response.status_code == 200:
                         image_binary = base64.b64encode(image_response.content)
-                        aRelValues['image_medium'] = image_binary
+                        aRelValues['image_1920'] = image_binary
 
                 # images from the gallery
                 else:
@@ -812,7 +812,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
             for odoo_variant in corresponding_product_variants:
 
-                value_ids = [value.id for value in odoo_variant.attribute_value_ids]
+                value_ids = [value.product_attribute_value_id.id for value in odoo_variant.product_template_attribute_value_ids]
                 if value_ids not in woo_variant_vals:
                     odoo_variant.unlink()
                 else:
@@ -835,17 +835,17 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                         'woo_price': float(woo_variant['price']) if woo_variant['price'] else 0,
                                         'woo_channel_id': self.id,
                                         'categ_id':1})
-                    image_medium = woo_variant['image']
+                    image_1920 = woo_variant['image']
 
-                    if image_medium:
-                        print('IMAGE SRC',image_medium['src'])
-                        if self.woo_host not in image_medium['src']:
-                            image_medium['src'] = self.woo_host + image_medium['src']
-                        image_response = requests.get(image_medium['src'], stream=True, verify=False,
+                    if image_1920:
+                        print('IMAGE SRC',image_1920['src'])
+                        if self.woo_host not in image_1920['src']:
+                            image_1920['src'] = self.woo_host + image_1920['src']
+                        image_response = requests.get(image_1920['src'], stream=True, verify=False,
                                                       timeout=10)
                         if image_response.status_code == 200:
                             image_binary = base64.b64encode(image_response.content)
-                            odoo_variant.write({'image_medium': image_binary})
+                            odoo_variant.write({'image_1920': image_binary})
                     variant_stock = woo_variant['stock_quantity']
                     if variant_stock is None:
                         variant_stock = 0
@@ -1223,7 +1223,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "street2": order['billing']['address_2'],
                 "city": order['billing']['city'],
                 "zip": order['billing']['postcode'],
-                "country": self.get_country_id(order['billing']['country']),
+                "country_id": self.get_country_id(order['billing']['country']),
                 # "state": order['billing']['state'],
                 "email": order['billing']['email'],
                 "phone": order['billing']['phone'],
@@ -1242,7 +1242,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 "street2": order['shipping']['address_2'],
                 "city": order['shipping']['city'],
                 "zip": order['shipping']['postcode'],
-                "country": self.get_country_id(order['shipping']['country']),
+                "country_id": self.get_country_id(order['shipping']['country']),
                 # "state": order['shipping']['state'],
                 "type": "delivery",
                 "woo_channel_id": self.id,
@@ -1320,8 +1320,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     del billing_info['message_follower_ids']
                 if billing_info.get('image'):
                     del billing_info['image']
-                if billing_info.get('image_medium'):
-                    del billing_info['image_medium']
+                if billing_info.get('image_1920'):
+                    del billing_info['image_1920']
                 if billing_info.get('image_small'):
                     del billing_info['image_small']
 
@@ -1445,8 +1445,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         del billing_info['message_follower_ids']
                     if billing_info.get('image'):
                         del billing_info['image']
-                    if billing_info.get('image_medium'):
-                        del billing_info['image_medium']
+                    if billing_info.get('image_1920'):
+                        del billing_info['image_1920']
                     if billing_info.get('image_small'):
                         del billing_info['image_small']
 
@@ -1471,8 +1471,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         del shipping_info['message_follower_ids']
                     if shipping_info.get('image'):
                         del shipping_info['image']
-                    if shipping_info.get('image_medium'):
-                        del shipping_info['image_medium']
+                    if shipping_info.get('image_1920'):
+                        del shipping_info['image_1920']
                     if shipping_info.get('image_small'):
                         del shipping_info['image_small']
                     shipping_record = self.env['res.partner'].create(shipping_info)
@@ -1555,8 +1555,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     del billing_info['message_follower_ids']
                 if billing_info.get('image'):
                     del billing_info['image']
-                if billing_info.get('image_medium'):
-                    del billing_info['image_medium']
+                if billing_info.get('image_1920'):
+                    del billing_info['image_1920']
                 if billing_info.get('image_small'):
                     del billing_info['image_small']
 
@@ -1680,8 +1680,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         del billing_info['message_follower_ids']
                     if billing_info.get('image'):
                         del billing_info['image']
-                    if billing_info.get('image_medium'):
-                        del billing_info['image_medium']
+                    if billing_info.get('image_1920'):
+                        del billing_info['image_1920']
                     if billing_info.get('image_small'):
                         del billing_info['image_small']
 
@@ -1706,8 +1706,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                         del shipping_info['message_follower_ids']
                     if shipping_info.get('image'):
                         del shipping_info['image']
-                    if shipping_info.get('image_medium'):
-                        del shipping_info['image_medium']
+                    if shipping_info.get('image_1920'):
+                        del shipping_info['image_1920']
                     if shipping_info.get('image_small'):
                         del shipping_info['image_small']
                     shipping_record = self.env['res.partner'].create(shipping_info)
