@@ -174,7 +174,7 @@ class InhertProductTemplate(models.Model):
     #
     #             # get product images
     #             images = []
-    #             image_medium = product.image_medium  # binary data of product image medium
+    #             image_medium = product..image_medium  # binary data of product image medium
     #             print('Image MEDIUM', image_medium)
     #             if image_medium:
     #                 res = upload_image(image_medium, product.name, product.channel_id.woo_host,
@@ -363,7 +363,7 @@ class InhertProductTemplate(models.Model):
 
             # get product images
             images = []
-            image_medium = product.image_medium  # binary data of product image medium
+            image_medium = product.image_1920  # binary data of product image medium
             print('Image MEDIUM', image_medium)
             if image_medium:
                 res = upload_image(image_medium, product.name, product.channel_id.woo_host,
@@ -450,7 +450,7 @@ class InhertProductTemplate(models.Model):
                         'weight': str(variant.weight),
                     }
                     image = {}
-                    image_medium = variant.image_medium  # binary data of product image medium
+                    image_medium = variant.image_1920  # binary data of product image medium
                     if image_medium is not None:
                         res = upload_image(image_medium, str(product.name) + str(variant.id),
                                            product.channel_id.woo_host,
