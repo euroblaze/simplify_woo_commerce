@@ -26,6 +26,8 @@ class InheritSaleOrder(models.Model):
         if self.channel_id:
             self.pos = self.channel_id.pos
             print("POS", self.pos)
+        else:
+            self.pos = 0
 
     pos = fields.Integer(string='Channel pos', compute=_compute_pos, readonly=True)
 
