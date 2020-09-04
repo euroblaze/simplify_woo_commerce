@@ -58,16 +58,17 @@
                         <group>
                             <group>
                                 <field name="woo_status"/>
-                                <field name="woo_export_type"/>
+                                <field name="categ_id_2" widget="many2many_tags"
+                                       attrs="{'required': [('pos','=',3)]}"/>
                             </group>
                             <group>
+                                <field name="woo_export_type"/>
                             </group>
                         </group>
                             <group>
                                 <field name="woo_remapped_values"  context="{'product_id':id}" >
 <!--                                      <tree editable="bottom">-->
-
-                                    <tree context="{'product_id':id}">
+                                    <tree context="{'product_id':id}" >
                                         <field name="original_value_id"/>
                                         <field name="remapped_value_ids" widget="many2many_tags" />
                                     </tree>
