@@ -220,7 +220,7 @@ class InhertProductTemplate(models.Model):
 
             data.update({
                 'name': product.name,
-                'sku': product.default_code if product.default_code else ' ',
+                'sku': product.woo_sku,
                 'price': str(product.list_price),
                 'regular_price': str(product.woo_regular_price) if product.woo_regular_price != 0.0 else ' ',
                 'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else str(
