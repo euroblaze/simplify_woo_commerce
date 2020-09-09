@@ -63,6 +63,7 @@
                             </group>
                             <group>
                                 <field name="woo_export_type"/>
+                                <field name="woo_sku"  attrs="{'required': [('pos','=',3)]}"/>
                             </group>
                         </group>
                             <group>

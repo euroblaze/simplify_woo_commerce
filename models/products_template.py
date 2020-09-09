@@ -46,7 +46,6 @@ class InhertProductTemplate(models.Model):
     woo_product_id = fields.Integer(string='Woo Product ID')
     woo_sale_price = fields.Float(string='Woo Sale price', description="Price when the product is on sale")
     woo_regular_price = fields.Float(string='Woo Regular price', description="Regular price of the product")
-    woo_sku = fields.Char("Woo SKU")
     woo_status = fields.Selection([('draft', 'Draft'),
                                    ('pending', 'Pending Review'),
                                    ('publish', "Published")],
@@ -59,10 +58,19 @@ class InhertProductTemplate(models.Model):
                                        default='compact',
                                        description="Choose type of Product export: Full Product- with all informtion or Without Images and text"
     )
+
+    woo_sku = fields.Char("Woo SKU")
+
+    @api.onchange('default_code')
+    def onchange_sku(self):
+        if self.default_code:
+            self.woo_sku = self.default_code
+
     #Field for remapped values
     woo_remapped_values = fields.One2many('product.attribute.remap', 'product_tmpl_id', string="Additional  values for colors")
     categ_id_2 = fields.Many2many(
         'product.category', string='Product Categories', help="Select categories for the current product")
+
 
     def _compute_pos(self):
         if len(self) == 1 and self.channel_id:
@@ -104,7 +112,7 @@ class InhertProductTemplate(models.Model):
                 wcapi.put("products/%s" % (woo_id), data)
 
     def export_woo_product(self):
-
+        print("Export product")
         product = self
         if int(product.channel_id.pos) == 3:
 
@@ -303,7 +311,7 @@ class InhertProductTemplate(models.Model):
                         else:
                             created_attribute = wcapi.post("products/attributes",
                                                            {"name": attribute.attribute_id.name}).json()
-                            # print("CREATED ATTRIBUTE", created_attribute)
+                            print("CREATED ATTRIBUTE", created_attribute)
                             created_attribute_id = created_attribute['id']
                             attribute_data['id'] = created_attribute_id
                             # print("Created attribute ID", created_attribute_id)
@@ -332,7 +340,7 @@ class InhertProductTemplate(models.Model):
                     # Add woo ID if exist -> update variant
                     if variant.woo_variant_id:
                         variant_data['id'] = variant.woo_variant_id
-                        # print("VARIANT DATA", variant_data)
+                        print("VARIANT DATA", variant_data)
                         print("Update variant",
                               wcapi.put("products/%s/variations/%s" % (woo_id, variant.woo_variant_id),
                                         variant_data).json())

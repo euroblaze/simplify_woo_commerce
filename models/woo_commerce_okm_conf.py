@@ -959,7 +959,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_product_info = {
                 'name': woo_product['name'],
                 'type': 'product',
-                'active': True if woo_product['status'] == 'publish' else False,
+                'active': True,
                 # active da zavisi od Woo status or woo catalog_visibility
                 'description': self.remove_html_tags(woo_product['description']),
                 'woo_regular_price': float(woo_product['regular_price'].replace(",", ".")) if woo_product[
