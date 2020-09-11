@@ -921,8 +921,8 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             woo_categories += categories_per_page
 
         woo_product_list = []
-        print("Color attributes term")
-        print(wcapi.get("products/attributes/1/terms").json())
+        # print("Color attributes term")
+        # print(wcapi.get("products/attributes/1/terms").json())
 
 
         # before product import, import all categories
@@ -938,29 +938,29 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             aRelValues = {}
             woo_id = woo_product['id']
             woo_product_list.append(woo_id)
-            sku = woo_product['sku']  # Stock keeping unit, should be unique - something like isbn on the books
+            sku = woo_product['sku'] #MUST BE UNIQUE
             # check if product exist - search with sku number
             master_product_exists = product_template.search([('default_code', '=', sku), ('master_id', '=', None)],
                                                             limit=1)
             product_categories = woo_product['categories']
-            print("product categories", product_categories)
+            # print("product categories", product_categories)
             woo_category_id = woo_product['categories'][0]['id']
             # parse the product basic info
-            print(woo_product['price'])
+            # print(woo_product['price'])
             woo_sale_price = 0
             if woo_product['price'] == '' and woo_product['sale_price'] == '':
                 woo_sale_price = 0
             elif woo_product['sale_price'] != '':
                 woo_sale_price = float(woo_product['sale_price'].replace(",", "."))
 
-            print("STOCK", woo_product['stock_quantity'])
-            print("category", self.find_category(woo_category_id))
+            # print("STOCK", woo_product['stock_quantity'])
+            # find_categ = self.find_category(woo_category_id)
+            # print("category", find_categ)
 
             woo_product_info = {
                 'name': woo_product['name'],
                 'type': 'product',
                 'active': True,
-                # active da zavisi od Woo status or woo catalog_visibility
                 'description': self.remove_html_tags(woo_product['description']),
                 'woo_regular_price': float(woo_product['regular_price'].replace(",", ".")) if woo_product[
                                                                                                   'regular_price'] != '' else 0,
@@ -1000,12 +1000,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     woo_date_modified = woo_product['date_modified']
                     odoo_date_modified = woo_clone.write_date
                     update = self.check_woo_update(woo_date_modified, odoo_date_modified)
-                    print("Woo date", woo_date_modified)
-                    print("Odoo date", odoo_date_modified)
-                    print("Update", update)
+                    # print("Woo date", woo_date_modified)
+                    # print("Odoo date", odoo_date_modified)
+                    # print("Update", update)
 
                     variant_exist = self.env['product.product'].search([('product_tmpl_id', '=', woo_clone.id)])
-                    print("variant exist ", len(variant_exist))
+                    # print("variant exist ", len(variant_exist))
 
                     if update:
                         updated_products += 1
@@ -1107,6 +1107,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     del woo_product_info['message_follower_ids']
                 # print("DICT", woo_product_info)
                 woo_clone = self.env['product.template'].create(woo_product_info)
+                print("CLONE CREATE", woo_clone)
                 clone_woo_id = woo_clone.id
                 imported_products += 1
 

@@ -261,11 +261,26 @@ class InhertProductTemplate(models.Model):
                 variant_data = {}
                 data['type'] = 'variable'
                 wcapi.put('products/%s' % (woo_id), data).json()
-                product_attributes = []
-                for variant in variants:
-                    # print("VARIANT WOO ID", variant.woo_variant_id)
-                    # print("variant weight", str(variant.weight))
 
+                var_attr = variants.mapped('attribute_value_ids')
+                attr_data = {}
+                for attr in var_attr:
+                    name = attr.attribute_id.name
+                    option = attr.name
+                    if attr_data.get(name):
+                        attr_data[name]['options'].append(option)
+                    else:
+                        new_attr = {
+                            'name': name,
+                            'options': [option],
+                            'variation': "true",
+                            'visible': "true"
+                        }
+                        attr_data[name]=new_attr
+
+                product_attributes = list(attr_data.values())
+
+                for variant in variants:
                     variant_data = {
                         'description': variant.description if variant.description else " ",
                         'price': str(variant.lst_price),
@@ -294,10 +309,6 @@ class InhertProductTemplate(models.Model):
                     for attribute in variant_attributes:
                         # print("ATTRIBUTE TO EXPORT", attribute)
                         attribute_data = {}
-                        attribute_data['name'] = attribute.attribute_id.name
-                        attribute_data['option'] = attribute.name
-
-                        # print('WOO ATTRIBUTE ID', attribute.attribute_id.woo_attribute_id)
                         # if attribute exist in woo
                         if attribute.attribute_id.woo_attribute_id != 0:
                             attribute_data['id'] = attribute.attribute_id.woo_attribute_id
@@ -307,11 +318,11 @@ class InhertProductTemplate(models.Model):
                                 {"name": attribute.name}).json()
                             # print("CREATED VALUE 1", create_value)
 
-                        # if attribute does not exist in Woo
+                            # if attribute does not exist in Woo
                         else:
                             created_attribute = wcapi.post("products/attributes",
                                                            {"name": attribute.attribute_id.name}).json()
-                            print("CREATED ATTRIBUTE", created_attribute)
+                            # print("CREATED ATTRIBUTE", created_attribute)
                             created_attribute_id = created_attribute['id']
                             attribute_data['id'] = created_attribute_id
                             # print("Created attribute ID", created_attribute_id)
@@ -322,40 +333,44 @@ class InhertProductTemplate(models.Model):
                             create_value = wcapi.post("products/attributes/%s/terms" % (created_attribute_id),
                                                       {"name": attribute.name}).json()
                             # print("CREATED VALUE", create_value)
+                        attribute_data['name'] = attribute.attribute_id.name
+                        attribute_data['option'] = attribute.name
+                        product_attributes
+
+
+
                         attribute_data_copy = {}
                         attribute_data_copy = attribute_data.copy()
                         attributes.append(attribute_data)
-                        if len(product_attributes) != 0:
-                            for dict in product_attributes:
-                                if dict['name'] == attribute.attribute_id.name:
-                                    dict['options'].append(attribute.name)
-                        else:
-                            del attribute_data_copy['option']
-                            attribute_data_copy['options'] = [attribute.name]
-                            attribute_data_copy['variation'] = "true"
-                            product_attributes.append(attribute_data_copy)
 
                     variant_data['attributes'] = attributes
+                    # print("WARIAAAANT DATAAAA", variant_data)
 
                     # Add woo ID if exist -> update variant
                     if variant.woo_variant_id:
                         variant_data['id'] = variant.woo_variant_id
-                        print("VARIANT DATA", variant_data)
-                        print("Update variant",
-                              wcapi.put("products/%s/variations/%s" % (woo_id, variant.woo_variant_id),
-                                        variant_data).json())
+                        # print("VARIANT DATA", variant_data['attributes'])
+                        update_variant = wcapi.put("products/%s/variations/%s" % (woo_id, variant.woo_variant_id),
+                                        variant_data).json()
+                        # print("Update variant", update_variant)
+                        # print("VARIANT DATA", variant_data['attributes'])
                     else:  # -> create variant
                         var = wcapi.post("products/%s/variations" % (woo_id), variant_data).json()
                         # print("Create variant", var)
                         if var.get('id'):
                             variant_data['id'] = var['id']
+                            update_variant = variant.write({'woo_variant_id': var['id']})
+
                             variations.append(variant_data['id'])
                     # create/update variant and then get the variant id
+
                 data['attributes'] = product_attributes
-                # print("Update product2", wcapi.put('products/%s' % (woo_id), data).json())
+                print("Update product2", wcapi.put('products/%s' % (woo_id), data).json())
 
                 data['variations'] = variations
-            # print("Update product", wcapi.put('products/%s' % (woo_id), data).json())
+                # print("data of varations", variations)
+                update_product = wcapi.put('products/%s' % (woo_id), data).json()
+            # print("Update product", update_product)
             view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
             message = 'Product successfully exported to Woo Commerce!'
             return {
