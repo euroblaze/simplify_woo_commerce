@@ -18,7 +18,7 @@ def upload_image(image_data, image_name, host, username, password):
         return {}
     client = base.Client('%s/xmlrpc.php' % (host), username,
                          password, transport=SpecialTransport())
-    data = base64.decodestring(image_data)
+    data = base64.decodebytes(image_data)
     # create a temporary file, and save the image
     fobj = tempfile.NamedTemporaryFile(delete=False)
     filename = fobj.name
