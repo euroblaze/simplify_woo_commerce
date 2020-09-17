@@ -722,7 +722,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     if image_response.status_code == 200:
                         image_binary = base64.b64encode(image_response.content)
                         # add the image into product image
-                        wooCreateImage = self.env['product.catalog.image'].create({
+                        wooCreateImage = self.env['product.image'].create({
                             'name': image['name'],
                             'woo_image_id': image['id'],
                             'woo_channel_id': self.id,
