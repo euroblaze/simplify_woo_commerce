@@ -826,7 +826,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     print("PRODUCT category", woo_category_id)
                     odoo_variant.write({'woo_variant_id': woo_variant['id'],
                                         'default_code': variants_sku[i],
-                                        'active': status,
+                                        'active': True,
                                         'type': 'product',
                                         'price': float(woo_variant['price']) if woo_variant['price'] else 0,
                                         'lst_price': float(woo_variant['price']) if woo_variant['price'] else 0,
