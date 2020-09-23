@@ -35,12 +35,12 @@
                             attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
                 </button>
 
-                <xpath expr="//page[@name='variants']" position="replace">
+                <!-- <xpath expr="//page[@name='variants']" position="replace">
                      <page name="variants" string="Variants" groups="product.group_product_variant">
                     <field name="attribute_line_ids" widget="one2many_list" context="{'show_attribute': False}">
                         <tree string="Variants" editable="bottom">
                             <field name="attribute_id"/>
-                            <field name="value_ids" widget="many2many_tags" options="{'no_create_edit': True}" domain="[('attribute_id', '=', attribute_id), ('value_parent_id', '=', None)]" context="{'default_attribute_id': attribute_id}"/>
+                            <field name="value_ids" widget="many2many_tags" options="{'no_create_edit': True}" domain="[('attribute_id', '=', attribute_id)]" context="{'default_attribute_id': attribute_id}"/>
                         </tree>
                     </field>
                         <p class="oe_grey">
@@ -50,7 +50,7 @@
                     </p>
                 </page>
 
-                </xpath>
+                </xpath> -->
 
                 <xpath expr="//form[@name='Product Template']/sheet[1]/notebook[1]" position="inside">
                      <page name="woo_information" string="Woo Commerce Information" sequence="1"
@@ -63,16 +63,16 @@
                             <group>
                             </group>
                         </group>
-                            <group>
-                                <field name="woo_remapped_values"  context="{'product_id':id}" >
-<!--                                      <tree editable="bottom">-->
+<!--                            <group>-->
+<!--                                <field name="woo_remapped_values"  context="{'product_id':id}" >-->
+<!--&lt;!&ndash;                                      <tree editable="bottom">&ndash;&gt;-->
 
-                                    <tree context="{'product_id':id}">
-                                        <field name="original_value_id"/>
-                                        <field name="remapped_value_ids" widget="many2many_tags" />
-                                    </tree>
-                                </field>
-                            </group>
+<!--                                    <tree context="{'product_id':id}">-->
+<!--                                        <field name="original_value_id"/>-->
+<!--                                        <field name="remapped_value_ids" widget="many2many_tags" />-->
+<!--                                    </tree>-->
+<!--                                </field>-->
+<!--                            </group>-->
                     </page>
                 </xpath>
             </field>
