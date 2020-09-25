@@ -77,6 +77,13 @@ class InhertProductTemplate(models.Model):
             self.pos = self.channel_id.pos
 
     pos = fields.Integer(string='Channel pos', compute=_compute_pos)
+    @api.depends('attribute_line_ids')
+    def _onchange_attributes(self):
+        if self.attribute_line_ids:
+            self.attribute_line_ids2=self.attribute_line_ids
+    attribute_line_ids2 = fields.One2many('product.template.attribute.line', 'product_tmpl_id', 'Product Attributes', compute=_onchange_attributes)
+
+
 
     @api.depends('product_variant_ids', 'product_variant_ids.default_code')
     def _compute_default_code(self):
@@ -131,8 +138,6 @@ class InhertProductTemplate(models.Model):
                     break
                 woo_categories += categories_per_page
             product.channel_id.import_woo_categories(woo_categories)
-
-            # print("API", wcapi.__dict__)
 
             taxes = self.env['woo.taxes.map'].search([('woo_channel_id', '=', product.channel_id.id)])
             taxes_class = []

@@ -1167,7 +1167,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                                                            ('master_id', '!=', None),
                                                            ('channel_id', '=', self.id)])
             print("PRODUCT", product)
-            product_id = None
+            print("PRODUCT ID", line['product_id'])
             # if line['variation_id']:
             #     product_id = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
             #                                                      ('woo_channel_id', '=', self.id),
@@ -1176,7 +1176,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             # else:
             #     product_id = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
             if not product:
-                product_id = self.env['product.product'].search([('product_tmpl_id', '=', 230)])
+                product_id = self.env['product.product'].search([('product_tmpl_id', '=', line['product_id'])])
                 with open('/tmp/missing_products_in_order.txt', 'a') as f:
                     f.write(str(line['product_id']) + ' : ' + str(sale_order_id) + "\n")
 
