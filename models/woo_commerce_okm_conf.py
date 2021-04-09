@@ -722,7 +722,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     if image_response.status_code == 200:
                         image_binary = base64.b64encode(image_response.content)
                         # add the image into product image
-                        wooCreateImage = self.env['product.image'].create({
+                        wooCreateImage = self.env['product.catalog.image'].create({
                             'name': image['name'],
                             'woo_image_id': image['id'],
                             'woo_channel_id': self.id,
@@ -1165,6 +1165,9 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             product = self.env['product.template'].search([('woo_product_id', '=', line['product_id']),
                                                            ('master_id', '!=', None),
                                                            ('channel_id', '=', self.id)])
+            master_product = self.env['product.template'].search([('default_code', '=', product.default_code), ('master_id', '=', None)],
+                                                            limit=1)
+            master_product_product = self.env['product.product'].search([('product_tmpl_id', '=', master_product.id)])
             print("PRODUCT", product)
             product_id = None
             if line['variation_id']:
@@ -1208,7 +1211,12 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 order_line = self.env['sale.order.line'].create(order_line_info)
                 print(order_line)
                 order_line_ids.append(order_line.id)
-
+            master_product_stock = self.env['stock.quant'].search([('product_id', '=', master_product_product.id)], limit=1)
+            quantity = master_product_stock.quantity
+            master_product_stock_values = {
+                'quantity' : quantity - float(line['quantity'])
+            }
+            master_product_stock.write(master_product_stock_values)
         return order_line_ids
 
     def get_billing_and_shipping_info_from_order(self, order):
