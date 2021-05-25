@@ -10,4 +10,4 @@ from . import sale_order
 from . import product_attribute
 from . import pop_up_message
 # from . import helper_data
-from . import product_attribute_remap
+# from . import product_attribute_remap
