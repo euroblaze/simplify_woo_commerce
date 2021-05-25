@@ -1169,7 +1169,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
             product_id = None
             if line['variation_id']:
                 product_id = self.env['product.product'].search([('woo_variant_id', '=', line['variation_id']),
-                                                                 ('woo_channel_id', '=', self.id),
                                                                  ('product_tmpl_id', '=', product.id)])
 
             else:
@@ -1735,9 +1734,6 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
 
     def import_woo_orders_on_clink(self):
         # This method usage is in case that some product/customer from the orders was not imported or updated previous
-        self.import_woo_taxes()
-        self.import_woo_products()
-        self.import_woo_customers()
         self.import_woo_orders()
         view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
         message = 'Orders successfully imported!'

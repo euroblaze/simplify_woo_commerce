@@ -31,7 +31,7 @@
                            attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
                 </xpath>
                 <button name="action_update_quantity_on_hand" position="after">
-                    <button string="Export to Woo Commerce" name="export_woo_product" type="object"
+                    <button string="Export to Woo Commerce" name="export_product" type="object"
                             attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>
                 </button>
 

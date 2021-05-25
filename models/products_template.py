@@ -6,6 +6,7 @@ from ..wordpress_xmlrpc import base
 from ..wordpress_xmlrpc import compat
 from ..wordpress_xmlrpc import media
 import base64
+from itertools import combinations
 import tempfile
 
 
@@ -581,3 +582,302 @@ class InhertProductTemplate(models.Model):
                     # create/update variant and then get the variant id
                 data['variations'] = variations
                 wcapi.put('products/%s' % (woo_id), data).json()
+
+    def export_product(self):
+
+        product = self
+        wcapi = product.channel_id.create_woo_commerce_object()
+        images = self.images_for_product(product)
+        options = self.options_and_variants_for_product(product)
+        taxes_class = []
+        categories = self.get_category_for_product(product)
+        if len(product.taxes_id) > 0:
+            for tax in taxes:
+                if tax.odoo_tax in product.taxes_id:
+                    taxes_class.append(tax.woo_tax.tax_class)
+        if options:
+            payload = {
+                "name": product.name,
+                'description' : product.description if product.description else ' ',
+                "type": "variable",
+                'sku': product.default_code if product.default_code else ' ',
+                'price': str(product.list_price),
+                'regular_price': str(product.list_price),
+                'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else str(
+                    product.list_price),
+                'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
+                'manage_stock': 'true',
+                'stock_quantity': product.virtual_available,
+                'weight': str(product.weight),
+                'categories': categories,
+                'status': product.woo_status,
+                'images' : images,
+                "attributes": options
+            }
+        else:
+            payload = {
+                "name": product.name,
+                'description': product.description if product.description else ' ',
+                "type": "simple",
+                'sku': product.default_code if product.default_code else ' ',
+                'price': str(product.list_price),
+                'regular_price': str(product.list_price),
+                'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else str(
+                    product.list_price),
+                'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
+                'manage_stock': 'true',
+                'stock_quantity': product.virtual_available,
+                'weight': str(product.weight),
+                'categories': categories,
+                'status': product.woo_status,
+                'images' : images,
+
+            }
+        is_woo_product_exist = self.check_if_woo_product_exist(product)
+        if is_woo_product_exist:
+           response = wcapi.put(f"products/{product.woo_product_id}", payload).json()
+           if payload["type"] == "variable":
+               self.delete_variants_for_given_product(product)
+               self.create_variants_for_given_product(product)
+           print(response)
+
+        else:
+            woo_product = wcapi.post("products", payload).json()
+            print("create product ", woo_product)
+            print("WOO PRODUCT", woo_product)
+            if woo_product.get('id'):
+                woo_id = woo_product['id']
+                product.write({'woo_product_id': woo_id})
+            if payload["type"] == "variable":
+                self.create_variants_for_given_product(product)
+
+        view_id = self.env.ref('simplify_woo_commerce.woo_alert_window').id
+        message = 'Product successfully exported to Woo Commerce!'
+        return {
+            'name': 'Information',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'views': [(view_id, 'form')],
+            'res_model': 'custom.pop.up.message',
+            'view_id': view_id,
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'context': {'default_message': message},
+        }
+
+    def delete_variants_for_given_product(self,product):
+        wcapi = product.channel_id.create_woo_commerce_object()
+        product_variants = wcapi.get(f"products/{product.woo_product_id}/variations").json()
+        for variant in product_variants:
+            wcapi.delete(f"products/{product.woo_product_id}/variations/{variant['id']}", params={"force": True}).json()
+
+
+    def create_variants_for_given_product(self, product):
+        wcapi = product.channel_id.create_woo_commerce_object()
+        options = []
+        values = []
+        variant_dictionary_temp = {}
+        final_list_attributes = []
+        counter = 0
+        attributes = product.attribute_line_ids
+        attribute_names = []#### WOOOOO
+        # FIRST PART
+        if len(attributes) > 0:
+            for attribute in attributes:
+                attribut_name = attribute.display_name
+                attribute_names.append(attribut_name)### WOOOOO
+                for value in attribute.value_ids:
+                    values.append(value.name)
+                option = {
+                    "name": attribut_name,
+                    "values": values,
+                }
+                variant_dictionary_temp[counter] = values
+                counter = counter + 1
+                values = []
+                options.append(option)
+            for key in variant_dictionary_temp:
+                for attribute_value in variant_dictionary_temp[key]:
+                    final_list_attributes.append(attribute_value)
+            set_combination = set(list(combinations(final_list_attributes, len(attributes))))
+            # SECOND PART
+            final_variants = []
+            for combination in set_combination:
+                flak = 0
+                for i in range(0, len(combination)):
+                    if combination[i] in variant_dictionary_temp[i]:
+                        flak = flak + 1
+                    else:
+                        flak = 0
+                if flak == len(attributes):
+                    final_variants.append(combination)
+
+
+            for variant in final_variants:
+                list1 = []
+                for i in range(0, len(variant)):
+                    attribute_json = {}
+                    attribut_name = attribute_names[i]
+                    attribute = self.env['product.attribute'].search([('name', '=', attribut_name)])
+                    attribute_json['id'] = attribute.woo_attribute_id
+                    attribute_json['option'] = variant[i]
+                    list1.append(attribute_json)
+
+                product_product = self.get_exact_product(product, variant)
+                variant_data = {
+                    'price': str(product_product.lst_price),
+                    'regular_price': str(product_product.lst_price),
+                    'stock_quantity': product_product.virtual_available,
+                    'weight': str(product_product.weight),
+                    "attributes": list1
+                }
+                created_variant = wcapi.post(f"products/{product.woo_product_id}/variations", variant_data).json()
+                product_product.write({
+                    'woo_variant_id' : created_variant['id']
+                })
+
+
+    def get_exact_product(self,product,variant_attributes):
+        '''
+           This function is used for finding the exact product that satisfies variant_attributes.
+
+                   Parameters:
+                           product (object): product_template class.
+                           variant_attributes (tuple): attributes for the variant.
+
+                   Returns:
+                           product (object): product_product class, the product which has the given attributes
+
+                           '''
+        if 'Default Variant' not in variant_attributes:
+            flak=0
+            variants_for_given_product = self.env['product.product'].search([('product_tmpl_id', '=', product.id)])
+            for variant in variants_for_given_product:
+                for attribute in variant.product_template_attribute_value_ids:
+                    if attribute.name not in variant_attributes:
+                        flak=0
+                        break
+                    else:
+                        flak=1
+                if flak==1:
+                    return variant
+        else:
+            return product
+
+    def check_if_woo_product_exist(self,product):
+        wcapi = product.channel_id.create_woo_commerce_object()
+        response = wcapi.get(f"products/{product.woo_product_id}").json()
+        if 'id' in response:
+            return True
+        else:
+            return False
+
+    def options_and_variants_for_product(self,product):
+
+        values=[]
+        list_with_jsons = []
+        attributes = product.attribute_line_ids
+        if len(attributes) > 0:
+            for attribute in attributes:
+                attribut_name = attribute.display_name
+                attribute_woo_id_exist = self.env['product.attribute'].search([('name', '=', attribut_name)])
+                if not attribute_woo_id_exist.woo_attribute_id:
+                   woo_id =  self.create_attribute(product,attribut_name,attribute_woo_id_exist)
+                else:
+                    woo_id = attribute_woo_id_exist.woo_attribute_id
+                for value in attribute.value_ids:
+                    values.append(value.name)
+                json = {
+                    'id' : woo_id,
+                    "visible": True,
+                    "variation": True,
+                    "options": values
+                }
+                list_with_jsons.append(json)
+                values=[]
+            return list_with_jsons
+
+    def create_attribute(self,product,attribut_name,attribute_woo_id_exist):
+        wcapi = product.channel_id.create_woo_commerce_object()
+        created_attribute = wcapi.post("products/attributes",
+                                       {"name": attribut_name,
+                                        "type": "select",
+                                        }).json()
+        attribute_woo_id_exist.write({
+            'woo_attribute_id' : created_attribute['id']
+        })
+        return created_attribute['id']
+
+    def get_category_for_product(self,product):
+        categories = []
+        wcapi = product.channel_id.create_woo_commerce_object()
+        print("Product category", product.categ_id)
+        categ_id = product.categ_id
+        parent_path = categ_id.parent_path.split("/")
+
+        for category in parent_path:
+            print("=====================================================", category)
+
+            if category != '':
+                categ_id = self.env['product.category'].search([('id', '=', category)])
+                categ_data = {
+                    'name': categ_id.name,
+                }
+                if categ_id.woo_category_id:  # this category exist in Woo -> update the category
+                    print("Category exist in Woo")
+                    woo_categ = wcapi.put("products/categories/%s" % (categ_id.woo_category_id), categ_data)
+                    categ_data['id'] = categ_id.woo_category_id
+
+
+                else:  # the category does not exist in Woo -> create the category in Woo
+                    if categ_id.parent_id == None:
+                        print('Category does not exist in woo and does not have parent')
+                        categ_id.write({'channel_id': product.channel_id.id})
+                        print("CATEG ID", categ_id.woo_channel_id)
+                        category = wcapi.post("products/categories", categ_data).json()
+                        print("CATEGORY", category)
+                        categ_id.woo_category_id = category['id']
+                        categ_data['id'] = category['id']
+                        print("CATEGORY", categ_data['id'])
+                    else:
+                        print('Category does not exist in Woo')
+                        categ_data['parent'] = categ_id.parent_id.woo_category_id
+                        print("CATEG DATA", categ_data)
+                        categ_id.write({'channel_id': product.channel_id.id})
+                        print("CATEG ID", categ_id.channel_id)
+                        category = wcapi.post("products/categories", categ_data).json()
+                        if category.get('id'):
+                            categ_id.woo_category_id = category['id']
+                            categ_data['id'] = category['id']
+
+                categories.append(categ_data)
+
+        print("CATEGORIES ********************", categories[-1])
+        return categories
+
+    def images_for_product(self,product):
+        images = []
+        image_medium = product.image_1920  # binary data of product image medium
+        print('Image MEDIUM', image_medium)
+        if image_medium:
+            res = upload_image(image_medium, product.name, product.channel_id.woo_host,
+                               product.channel_id.woo_username, product.channel_id.woo_password)
+            image = {
+                'id': res['attachment_id'],
+                'src': res['link'],
+                'name': res['title']
+            }
+            images.append(image)
+        print("PRODUCT IMAGES", len(product.product_image_ids) > 0)
+        if len(product.product_image_ids) > 0:
+            for image in product.product_image_ids:
+                print("IMAGE", image.image)
+                res = upload_image(image.image, image.name, product.channel_id.woo_host,
+                                   product.channel_id.woo_username, product.channel_id.woo_password)
+                image = {
+                    'id': res['attachment_id'],
+                    'src': res['link'],
+                    'name': res['title']
+                }
+                images.append(image)
+        return images
