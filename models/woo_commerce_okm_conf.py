@@ -1019,7 +1019,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                             'categ_id': self.find_category(woo_category_id) if self.find_category(woo_category_id) else 1
                         })
                         # update product variants (if exist)
-                        self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+                        # self.get_woo_product_variants(woo_product, wcapi, woo_clone)
                         # print('Odoo taxes', odoo_taxes)
                         woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
                         woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
@@ -1060,7 +1060,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                     woo_clone.write(aRelValues)
 
                     # Add variants to the clone if the product has variants
-                    self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+                    # self.get_woo_product_variants(woo_product, wcapi, woo_clone)
                     woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
                     woo_clone.write({'weight': woo_product['weight'] if woo_product['weight'] else 0})
                     variant_exist = self.env['product.product'].search([('product_tmpl_id', '=', woo_clone.id)])
@@ -1090,7 +1090,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 master_product.write(aRelValues)
 
                 # check from product variants
-                self.get_woo_product_variants(woo_product, wcapi, master_product)
+                # self.get_woo_product_variants(woo_product, wcapi, master_product)
                 # if does not have variants check if has attribute
 
                 # create duplicate product for Woo commerce =====================================================
@@ -1116,7 +1116,7 @@ class InheritChannelPosSettingsWooCommerceConnector(models.Model):
                 woo_clone.write(aRelValues)
 
                 # Add variants to the clone if the product has variants
-                self.get_woo_product_variants(woo_product, wcapi, woo_clone)
+                # self.get_woo_product_variants(woo_product, wcapi, woo_clone)
                 if odoo_taxes:
                     woo_clone.write({'taxes_id': [(6, 0, odoo_taxes)]})
 
