@@ -23,7 +23,7 @@
                     </group>
                 </xpath>
 
-                <xpath expr="//page[@name='general_information']//field[@name='list_price']" position='after'>
+                <xpath expr="//page[@name='general_information']//field[@name='list_price']/.." position='after'>
                     <field name="pos" invisible="1"/>
                     <field name="woo_regular_price"
                            attrs="{'required': [('pos', '==', 3)], 'invisible': [('pos', '!=', 3)]}"/>

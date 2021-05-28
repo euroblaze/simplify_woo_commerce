@@ -591,10 +591,10 @@ class InhertProductTemplate(models.Model):
         options = self.options_and_variants_for_product(product)
         taxes_class = []
         categories = self.get_category_for_product(product)
-        if len(product.taxes_id) > 0:
-            for tax in taxes:
-                if tax.odoo_tax in product.taxes_id:
-                    taxes_class.append(tax.woo_tax.tax_class)
+        # if len(product.taxes_id) > 0:
+        #     for tax in taxes:
+        #         if tax.odoo_tax in product.taxes_id:
+        #             taxes_class.append(tax.woo_tax.tax_class)
         if options:
             payload = {
                 "name": product.name,
@@ -605,7 +605,7 @@ class InhertProductTemplate(models.Model):
                 'regular_price': str(product.list_price),
                 'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else str(
                     product.list_price),
-                'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
+                # 'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
                 'manage_stock': 'true',
                 'stock_quantity': product.virtual_available,
                 'weight': str(product.weight),
@@ -624,7 +624,7 @@ class InhertProductTemplate(models.Model):
                 'regular_price': str(product.list_price),
                 'sale_price': str(product.woo_sale_price) if product.woo_sale_price != 0 else str(
                     product.list_price),
-                'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
+                # 'tax_class': taxes_class[0] if len(taxes_class) > 0 else " ",
                 'manage_stock': 'true',
                 'stock_quantity': product.virtual_available,
                 'weight': str(product.weight),
